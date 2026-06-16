@@ -1,17 +1,25 @@
 <!DOCTYPE html>
 <html>
   <body>
+<div id="menu"></div>
 
-    <div id="container"></div>
-    
-    <script>
-    fetch("https://api.github.com/repos/iamawatermelon0000/Watermelons-Codes/contents/").then(res => res.json()).then(f => {
-        const c = document.getElementById("container");
+<script>
+fetch("https://api.github.com/repos/iamawatermelon0000/Watermelons-Codes/contents/")
+.then(res => res.json())
+.then(files => {
+    const menu = document.getElementById("menu");
 
-        f.filter(() => file.name.endsWith(".html")).forEach(file => {
-          c.innerHTML += `<a href="./${file.name}">${file.name}></a><br>`;
-        });
+    files
+    .filter(file => file.name.endsWith(".html"))
+    .filter(file => file.name !== "index.html")
+    .forEach(file => {
+        menu.innerHTML += `
+            <a href="./${file.name}">
+                ${file.name}
+            </a><br>
+        `;
     });
-    </script>
+});
+</script>
   </body>
 </html>

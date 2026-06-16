@@ -8,8 +8,8 @@
     fetch("https://api.github.com/repos/iamawatermelon0000/Watermelons-Codes/contents/").then(res => res.json()).then(f => {
         const c = document.getElementById("container");
 
-        f.filer(file => file.name.endsWith(".html")).forEach(fi => {
-          c.innerHTML += `<a href="./${fi}.name">${fi.name}></a><br>`;
+        f.filter(() => file.name.endsWith(".html")).forEach(file => {
+          c.innerHTML += `<a href="./${file.name}">${file.name}></a><br>`;
         });
     });
     </script>

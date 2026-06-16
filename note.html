@@ -1,0 +1,39 @@
+<html>
+    <head>
+    <title>Note Web</title>
+</head>
+    
+    <body>
+    <input type="text" id="note">
+    <p> Enter notes in the input area above this text.</p>
+        <button type="button" onclick="sendNote()">Click here to send notes</button>
+        <button type="button" onclick="clearNote()">Click me to clear notes</button>
+
+        <p id="print"></p>
+
+    <script>
+       function sendNote() {
+
+    let note = document.getElementById("note").value;
+
+    if (note.trim() === "") {
+        alert("Invalid note!");
+        return;
+    }
+
+    localStorage.setItem("note", note);
+    document.getElementById("print").textContent = `Your note is: ${note}`;
+    document.getElementById("note").value = "";
+}
+
+        function clearNote() {
+            localStorage.removeItem("note");
+            document.getElementById("print").textContent = "";
+            document.getElementById("print").value = "";
+        }
+
+    </script>
+        
+</body>
+
+</html>

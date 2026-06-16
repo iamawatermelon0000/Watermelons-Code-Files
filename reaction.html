@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div id="clickA"></div>
+<p id="time">0</p>
+<button type="button" onclick="changeCol()">Click me to return</button>
+
+<style>
+#clickA {
+    background: red;
+    position: right;
+    width: 250px;
+    height: 250px;
+}
+</style>
+
+<script>
+
+    let time;
+let box = document.getElementById("clickA");
+
+function changeColor() {
+
+    box.style.background = "red";
+
+    let delay = Math.floor(Math.random() * 4000) + 1000;
+
+    setTimeout(() => {
+
+        box.style.background = "lime";
+        time = Date.now();
+
+    }, delay);
+}
+
+box.onclick = () => {
+
+    if (box.style.background === "lime" && time) {
+
+        let result = Date.now();
+
+        document.getElementById("time").textContent =
+        `Your reaction time is: ${result - time}ms`;
+
+    } else {
+
+        alert("Too early!");
+
+    }
+
+}
+
+function changeCol() {
+
+    document.getElementById("time").textContent = "0";
+    changeColor();
+
+}
+
+changeColor();
+</script>
+
+</body>
+</html>

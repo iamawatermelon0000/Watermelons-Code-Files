@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>B_Boxie. (the) X_Xenogenesis. O_Object</title>
+
+    <style>
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      #box {
+        background: black;
+        color: white;
+        
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        font-weight: bold;
+        text-align: center;
+
+        width: 250px;
+        height: 250px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        position: absolute;
+        border: 5px solid white;
+      }
+
+      #funnyTools {
+        border: 2px solid black;
+        text-align: center;
+
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: bolder;
+        font-style: italic;
+
+        position: fixed;
+        bottom: 50px;
+        left: 0;
+      }
+
+      #editTools {
+        border: 2px solid black;
+
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-style: italic;
+        font-weight: bold;
+        text-align: center;
+
+        position: fixed;
+        bottom: 10px;
+        left: 0;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <div id="box">hi (*^_^*)</div>
+
+    <div id="funnyTools">Funni Tools:
+      <button type="button" onclick="rotate()">Rotate. (15deg/16ms)</button>
+      <button type="button" onclick="startDVD()">DVD. (super chaos)</button>
+      <button type="button" onclick="fall()">Fall. (weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee...)</button>
+
+      <button type="button" onclick="clearAll()">Clear ALL</button>
+    </div>
+
+    <div id="editTools">Edit Tools:
+
+      <select id="editWhat">
+        <option>Background</option>
+        <option>Border Color</option>
+        <option>Face</option>
+      </select>
+
+      <button type="button" onclick="startEdit()">Start editing!</button>
+    </div>
+
+    <script>
+      let b = document.getElementById("box");
+      
+      let i;
+      let deg = 0;
+
+      let iDVD;
+      let iFall;
+      let x = 0, y = 0;
+
+      const faces = [
+          "(｀∇´)",
+          ">:)",
+          ":0",
+          ":P",
+          ":v",
+          ":>",
+          ":/",
+          ":)",
+          ":|",
+          "(≧∇≦)ﾉ"
+        ];
+      let f = faces[Math.floor(Math.random() * faces.length)];
+
+      b.onmouseenter = () => {
+        b.textContent = "chillin (✿◡‿◡)"
+      }
+      b.onmouseleave = () => {
+        f = faces[Math.floor(Math.random() * faces.length)];
+        b.textContent = f;
+      }
+      b.onclick = () => {
+        b.textContent = "OW >:("
+      }
+
+      function rotate() {
+
+      if (!i) {
+
+        b.textContent = "`/(*>_<*)\\"
+
+        i = setInterval(() => {
+          b.style.transform = `rotate(${deg += 15}deg)`;
+        }, 16);
+      }
+
+    }
+      
+      function changePos() {
+      x += Math.floor(Math.random() * 1024) + 1;
+      y += Math.floor(Math.random() * 1024) + 1;
+    }
+      function startDVD() {
+        
+        if (!iDVD) {
+          
+          b.textContent = "woah :O"
+          iDVD = setInterval(() => {
+            changePos();
+
+            if (x >= (window.innerWidth - 250)) x = -x;
+            if(y >= (window.innerHeight - 250)) y = -y;
+
+            b.style.left = x + 'px';
+            b.style.top = y + 'px';
+
+            b.style.width = (Math.floor(Math.random() * 250) + 1) + 'px';
+            b.style.height = (Math.floor(Math.random() * 250) + 1) + 'px';
+
+          }, 16);
+        }
+      }
+
+      function fall() {
+
+        if (!iFall) {
+
+          iFall = setInterval(() => {
+            y += 50;
+
+            b.style.top= y + 'px';
+            b.textContent = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA (oﾟvﾟo)";
+
+            if (y >= 5000) {
+              clearAll();
+            }
+          }, 32); // 676767676767676767676767676767676767
+        }
+
+      }
+
+      function startEdit() {
+        let info = document.getElementById("editWhat").value;
+        let p;
+
+        if (info === "Background") {
+
+          p = prompt("What color?");
+          b.style.background = p;
+
+        } else if (info === "Border Color") {
+
+          p = prompt("What border color?");
+          b.style.border = `5px solid ${p}`;
+
+        } else if (info === "Face") {
+
+          f = faces[Math.floor(Math.random() * faces.length)];
+          b.textContent = f;
+          b.textContent = `I like my new face! ${f}`;
+
+        }
+      }
+
+      function clearAll() {
+        location.reload();
+      }
+
+    </script>
+
+  </body>
+</html>

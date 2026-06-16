@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <body>
+
+        <style>
+            * {
+                margin: 10px;
+            }
+
+            body {
+                text-align: center;
+            }
+
+            p {
+                text-align: center;
+                color: red;
+                font-family: 'Times New Roman', Times, serif;
+
+                border: 2px solid red;
+                display: inline-block;
+
+                font-size: 40px;
+                letter-spacing: 2px;
+            }
+
+            button {
+                background: lime;
+                width: 250px;
+                height: 250px;
+                font-size: 50px;
+            }
+        </style>
+
+        <div>
+            Enter hour here: <input type="number" id="hour">
+            Enter minute here: <input type="number" id="minute">
+            Enter second here: <input type="number" id="second">
+        </div>
+
+        <button type="button" onclick="start()">
+            Click here to start
+        </button>
+
+        <div>
+        <p id="print">The clock hasn't started yet.</p>
+        </div>
+
+        <div>
+             <p id="day">Day: 0</p>
+        </div>
+
+        <script>
+            let started = false;
+
+           function start() {
+
+            started = true;
+            if (started) {
+                alert("You've already clicked start!");
+                return;
+            }
+
+    let hr = parseInt(document.getElementById("hour").value);
+    let min = parseInt(document.getElementById("minute").value);
+    let sec = parseInt(document.getElementById("second").value);
+    let day = 0;
+
+    if (isNaN(hr) || isNaN(min) || isNaN(sec)) {
+        alert("Invalid time!");
+        return;
+    }
+
+    setInterval(() => {
+        sec++;
+
+        if (sec >= 60) {
+            sec = 0;
+            min++;
+        }
+
+        if (min >= 60) {
+            min = 0;
+            hr++;
+        }
+
+        if (hr >= 24) {
+            hr = 0;
+            day++;
+            
+            document.querySelector("#day").textContent = `Day: ${day}`;
+        }
+
+        document.querySelector("#print").textContent =
+            `[== ${String(hr).padStart(2, "0")} : ${String(min).padStart(2, "0")} : ${String(sec).padStart(2, "0")} ==]`;
+    }, 1000);
+
+    started = false;
+}
+        </script>
+
+
+
+    </body>
+</html>

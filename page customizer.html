@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <title>Page Customizer</title>
+
+    <style>
+      #main {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        margin: 10px;
+      }
+
+      #text {
+        text-align: center;
+      }
+    </style>
+
+  </head>
+  <body>
+
+      <section id="main">
+
+    <div id="background">Background:
+      <input type="text" id="cl" placeholder="Enter background color...">
+      <button type="button" onclick="changebg()">Change Background</button>
+    </div>
+
+    <div id="font">Font:
+      <input type="text" id="ft" placeholder="Enter font...">
+      <button type="button" onclick="changeft()">Change Font</button>
+    </div>
+
+    <div id="fontColor">Font Color:
+      <input type="text" id="fontCl" placeholder="Enter Font Color...">
+      <button type="button" onclick="changeFontCl()">Change Font Color</button>
+    </div>
+
+    <div id="fontSt">Font Style:
+      <select id="st">
+        <option>None</option>
+        <option>Bold</option>
+        <option>Italic</option>
+      </select>
+      <button type="button" onclick="changeFontSt()">Change Font Style</button>
+    </div>
+
+    <div id="more">More:
+
+      <div id="texts">Text:
+        <input type="text" id="txt" placeholder="Enter new text...">
+        <button type="button" onclick="changeText()">Change Text</button>
+      </div>
+
+      <button type="button" onclick="reset()">Reset ALL</button>
+    </div>
+
+      </section>
+
+        <p id="text">Example Text</p>
+
+      <script>
+        let exText = document.getElementById("text");
+        
+        function changebg() {
+          let bg = document.getElementById("cl").value;
+          document.body.style.background = bg;
+        }
+
+        function changeFontCl() {
+          let ftCl = document.getElementById("fontCl").value;
+          exText.style.color = ftCl;
+        }
+
+        function changeft() {
+          let font = document.getElementById("ft").value;
+          exText.style.fontFamily = font;
+        }
+
+        function changeFontSt() {
+          let style = document.getElementById("st").value;
+
+          if (style.includes("bold")) { exText.style.fontWeight = style; return; }
+          exText.style.fontStyle = style;
+        }
+
+        function changeText() {
+          let newText = document.getElementById("txt").value;
+          exText.textContent = newText;
+        }
+
+        function reset() {
+          location.reload();
+        }
+
+      </script>
+  </body>
+</html>

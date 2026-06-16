@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1> [== Emoji Randomizer 😜 ==]</h1>
+
+        <button type="button" onclick="start()">[[ RANDOM ]]</button>
+
+        <p id="print">Your emoji!!!!!: </p>
+
+        <script>
+            let print = document.getElementById("print");
+
+            function start() {
+                let random = [
+                    "(❁´◡`❁)",
+                    "(●''●)",
+                    "╰(*°▽°*)╯",
+                    "☆*: .｡. o(≧▽≦)o .｡.:*☆",
+                    "(^///^)",
+                    " ༼ つ ◕_◕ ༽つ",
+                    " ¯\_(ツ)_/¯",
+                    "(⌐■_■)",
+                    "( ´･･)ﾉ(._.`)",
+                    "(●'◡'●)"
+                ];
+
+                let rare = [
+                    "😜",
+                    "😎",
+                    "👏",
+                    "🤷‍♂️",
+                    "💕",
+                    "👍",
+                    "🤦‍♀️",
+                    "👀",
+                    "😃",
+                    "🐱‍🐉",
+                    "😆",
+                    "✨",
+                    "🐱‍🏍"
+                ]
+
+                if (Math.floor() < 0.01) {
+                    print.textContent =  `Your emoji!!!!!: ${random[Math.floor(Math.random() * random.length)]} [RARE! (1/100)]`;
+
+            } else {
+                    print.textContent = `Your emoji!!!!!: ${rare[Math.floor(Math.random() * rare.length)]}`;            
+                
+             }
+        }
+        </script>
+    </body>
+</html>

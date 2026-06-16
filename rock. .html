@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>THE ROCK</title>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+      }
+
+      #rock {
+        width: 250px;
+        height: 250px;
+
+        border: 2px solid red;
+        background: black;
+        color: white;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+      }
+
+      #exp, #status, #skips { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 23px;
+
+        text-align: center;
+      }
+
+      button {
+        width: 150px;
+        height: 100px;
+
+        font-size: 20px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+        display: flex;
+        gap: 50px;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #tools {
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bolder;
+        font-style: italic;
+
+        border: 2px solid black;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+      }
+
+      #xpBar {
+        width: 0px;
+        height: 50px;
+        border: 2px solid black;
+        background: black;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+
+    <h1 id="rock">this is rock.</h1> <!-- l windows/browser/emoji/everything -->
+
+    <div id="printings">
+      <p id="exp">[Experience]</p>
+      <div id="xpBar">xp bar</div>
+
+      <p id="status">[Status/Actions will be here]</p>
+      <p id="skips">[Skips that you have]</p>
+    </div>
+
+    <div id="tools">Actions that you can do:
+      <button type="button" onclick="feed()">Feed THE ROCK</button>
+      <button type="button" onclick="stare()">Stares at the rock..?</button>
+      <button type="button" onclick="pat()">Pat the ROCK</button>
+      <button type="button" onclick="timeskip()">Timeskip (500xp required)</button>
+    </div>
+
+    <script>
+      let exp = Number(localStorage.getItem("exp") || 0);
+      let skipReq = 500;
+      let skips = Number(localStorage.getItem("skips") || 0);
+
+      let bar = document.getElementById("xpBar");
+      let w = Number(localStorage.getItem("width") || 0);
+
+      let prExp = document.getElementById("exp");
+      let prStats = document.getElementById("status");
+      let prSkips = document.getElementById("skips");
+
+      let iXP;
+      
+      if (!iXP) {
+
+        iXP = setInterval(() => {
+
+          w = exp;
+          bar.style.width = w + 'px';
+          
+          exp++;
+          prExp.textContent = `Current EXP: ${exp}.`;
+
+          if (exp < 0) {
+            exp = 0;
+          }
+
+          save();
+
+        }, Math.floor(Math.random() * (5000 - 1000 + 1) + 1000));
+      };
+
+      save();
+      prExp.textContent = `Current EXP: ${exp}.`;
+      prSkips.textContent = `You have ${skips} skips.`;
+      bar.style.width = w + 'px';
+
+      function save() {
+        localStorage.setItem("exp", exp);
+        localStorage.setItem("skips", skips);
+        localStorage.setItem("width", w);
+      }
+
+      function feed() {
+        exp += Math.floor(Math.random() * 10) + 1;
+        prExp.textContent = `Current EXP: ${exp}.`;
+        prSkips.textContent = `You have ${skips} skips.`
+
+        prStats.textContent = `You fed the rock, gained some xp`;
+        w = exp;
+        bar.style.width = w + 'px';
+
+        save();
+      }
+
+      function stare() {
+
+        if (Math.random() < 0.1) {
+
+        exp += 25
+        prExp.textContent = `Current EXP: ${exp}.`;
+        prSkips.textContent = `You have ${skips} skips.`
+
+        prStats.textContent = `You stared the rock and got lucky, gained 25 xp`;
+        w = exp;
+        bar.style.width = w + 'px';
+
+        } else {
+
+          exp -= 30;
+          if (exp < 0) {
+            exp = 0;
+          }
+
+          prExp.textContent = `Current EXP: ${exp}.`;
+          prSkips.textContent = `You have ${skips} skips.`
+
+          prStats.textContent = `You stared at the rock... nothing happened and you lost 30xp`
+        }
+
+        save();
+      }
+
+      function pat() {
+
+        if (Math.random() < 0.01) {
+
+        prStats.textContent = "You pated the rock and gained 1 time skip!";
+
+        skips += 1;
+        prSkips.textContent = `You have ${skips} skips.`;
+
+        } else {
+          prStats.textContent = "You pated the rock, he relaxed but gave you nothing in return.";
+
+          if (Math.random() < 0.5) {
+
+            prStats.textContent = "That was a very good pat, you gained 1 xp"
+            exp += 1;
+            prExp.textContent = `Current EXP: ${exp}.`;
+            prSkips.textContent = `You have ${skips} skips.`
+
+            w = exp;
+            bar.style.width = w + 'px';
+          } 
+          return;
+        }
+
+        save();
+      }
+
+      function timeskip() {
+
+        if (exp < 500 && skips <= 0) {
+          prStats.textContent = "GET MORE XP AHDAOISHDOIAHSODHASODH";
+
+        } else if (skips >= 1) {
+
+          alert("Timeskipping... (skip-pass used!)");
+          document.body.style.background = "black";
+
+          setTimeout(() => {
+            exp += Math.floor(Math.random() * (1500 - 500 + 1)) + 500;
+            skips -= 1;
+
+            prExp.textContent = `Current EXP: ${exp}.`;
+            prSkips.textContent = `You have ${skips} skips.`;
+
+            document.body.style.background = "white";
+
+            save();
+          }, 1500);
+
+        } else {
+          exp -= 500;
+          
+          alert("Timeskipping...");
+          document.body.style.background = "black";
+
+          setTimeout(() => {
+          exp += Math.floor(Math.random() * (1500 - 500 + 1)) + 500;
+          prExp.textContent = `Current EXP: ${exp}.`;
+          prSkips.textContent = `You have ${skips} skips.`;
+
+          document.body.style.background = "white";
+
+          save();
+          }, 1500);
+
+        }
+
+        save();
+      }
+    </script>
+
+  </body>
+</html>

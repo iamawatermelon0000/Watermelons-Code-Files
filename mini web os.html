@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    #app {
+      width: 100px;
+      height: 40px;
+      border: 2px solid brown;
+      display: inline-block;
+      text-align: center;
+      color: white;
+      background: black;
+      margin: 5px;
+    }
+
+    body {
+      background: lightblue;
+      margin: 10px;
+    }
+
+    #stop {
+      position: fixed;
+      top: 50px;
+      right: 0px;
+    }
+
+    #forHackingProgram {
+      color: lime;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    #sysApp {
+      margin: 5px;
+      color: white;
+      background: brown;
+      width: 100px;
+      height: 40px;
+      border: 2px solid black;
+      text-align: center;
+    }
+
+    #systemAbouts {
+      position: fixed;
+      bottom: 15px;
+      left: 0px;
+    }
+
+    #caution {
+      color: red;
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+      font-style: italic;
+      font-weight: bolder;
+
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+
+  </style>
+  <body>
+
+    <div id="avaiableApps">
+      (i) Avaiable apps: BackgroundChanger1000, RandomYoutubeVids9999, Seizure1234, Box, SGFja2luZ1Byb2dyYW0xMDAw, Self-destruct, PrintText.exe, MouseTracker.bat
+    </div>
+    <div id="systemApps">(i) Avaiable System settings: System Panel, Performence Stats, Hardware Editor, Login, OS Chooser</div>
+
+    <div id="app">Application explorer</div>
+    <div id="sysApp">System Applications</div>
+
+    <div id="systemAbouts">*OS Name: webOS; System Hardware: 264GB Ram DDR5, 2TB SSD, CPU Intel i9.</div>
+    <div id="caution">*: CANNOT BE CHANGED</div>
+
+    <button id="stop" type="button" onclick="forceStop()">- Reset Everything Back To Normal -</button>
+
+    <p id="forHackingProgram"></p>
+
+    <script>
+
+        /* APPLICATIONS - MAIN*/
+
+      let application = document.getElementById("app");
+      let avaiAppsDiv = document.getElementById("avaiableApps");
+
+        /* APPLICATIONS - SYSTEM*/
+
+      let systemApps = document.getElementById("sysApp");
+      let avaiSystemApps = document.getElementById("systemApps");
+      let currentOS = "WebOS 10"
+
+        /* PRINTING SECTION */
+
+      let createDivPrint = null;
+      let printSystemInfo = null;
+      let printPerformenceStats = null;
+      let printMousePos = null;
+
+
+        /* INTERVALS */
+
+      let int;
+      let hackingInt;
+      let intervalStats;
+      let selfDesInt;
+
+        /* OTHERS */
+
+      let warned = false;
+      let sysAbouts = document.getElementById("systemAbouts");
+      let hackingOutput = document.getElementById("forHackingProgram");
+
+      let timeOnline = 0;
+      setInterval(() => {
+        timeOnline += 1;
+      }, 1000);
+
+      let detectMousePos;
+
+        /* ACCOUNT */
+
+      let account = localStorage.getItem("acc") === "true";
+
+      let promptAccount = localStorage.getItem("account") || "";
+
+      let printAccount = document.createElement("div");
+      printAccount.textContent = `Current User: ${promptAccount || "Guest"}.`;
+
+      printAccount.style.position = 'fixed';
+      printAccount.style.bottom = 5 + 'px';
+      printAccount.style.right = 0 + 'px';
+
+      if (account && promptAccount) {
+        document.body.appendChild(printAccount);
+      }
+
+        /* baOS ONLY */
+      let editBtn;
+      let bar;
+      let prog = 0;
+      let progSpeed;
+
+      /* MAIN APPLICATIONS */
+
+      application.onclick = () => {
+            let promptApp = prompt("Which app do you wanna open?");
+            if (!promptApp) return;
+            
+            let openApp = promptApp.trim().toLowerCase();
+
+            if (openApp.includes("background") || openApp.includes("changer")) {
+
+                let promptBackground = prompt("Which color?");
+                if (!promptBackground) return;
+                document.body.style.background = promptBackground;
+
+                if (promptBackground.trim().toLowerCase() === 'black') {
+                  avaiAppsDiv.style.color = 'white';
+                  avaiSystemApps.style.color = 'white';
+                } else {
+                  avaiAppsDiv.style.color = 'black';
+                  avaiSystemApps.style.color = 'black';
+            }      return;
+
+            } else if (openApp.includes("random") || openApp.includes("youtube") || openApp.includes("vids9999")) {
+
+                const arrVids = [
+                  "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                  "https://www.youtube.com/watch?v=ZZ5LpwO-An4",
+                  "https://www.youtube.com/watch?v=9Deg7VrpHbM",
+                  "https://www.youtube.com/watch?v=oHg5SJYRHA0",
+                  "https://www.youtube.com/watch?v=ub82Xb1C8os",
+                  "https://www.youtube.com/watch?v=EE-xtCF3T94",
+                  "https://www.youtube.com/watch?v=DLzxrzFCyOs",
+                  "https://www.youtube.com/watch?v=j5a0jTc9S10",
+                  "https://www.youtube.com/watch?v=6_b7RDuLwcI",
+                  "https://www.youtube.com/watch?v=QH2-TGUlwu4",
+                ];
+                let openArrVid = arrVids[Math.floor(Math.random() * arrVids.length)];
+                window.open(openArrVid);
+                return;
+
+            } else if (openApp.includes("seizure")) {
+
+              let confirmSeizure = confirm("(DANGER LEVEL: !!!!!) Are you sure?");
+              alert("FOR EMERGENCY STOP: PRESS F5 OR RELOAD THE PAGE OR CLICK THE RESET ALL BUTTON. THIS IS FOR YOUR SAFETY.");
+
+              if (!confirmSeizure) return;
+
+                const backgroundColors = [
+                  "white",
+                  "yellow",
+                  "red",
+                  "blue",
+                  "lightblue",
+                  "purple",
+                  "pink",
+                  "brown"
+                ];
+
+                  if (int) return;  
+
+                int = setInterval(() => {
+                  let changeBackgroundColor = backgroundColors[Math.floor(Math.random() * backgroundColors.length)];
+                  document.body.style.background = changeBackgroundColor;
+                }, 25);
+                return;
+
+            } else if (openApp.includes("box")) {
+
+                  let createBox = document.createElement("div");
+
+                  createBox.style.width = "50" + 'px';
+                  createBox.style.height = '50' + 'px';
+
+                  createBox.style.background = 'red';
+                  createBox.style.border = '2px solid black';
+
+                  createBox.style.position = 'absolute';
+                  createBox.style.textAlign = 'center';
+
+                  document.body.appendChild(createBox);
+
+                  return;
+
+            } else if (openApp.includes("hacking") || openApp.includes("program") || openApp.includes("hack")) {
+
+              alert("(i+) Press F5 / FN 5 to reset. (manual reload also works)")
+
+              clearInterval(int);
+              int = null;
+
+              if (hackingInt) return;
+
+              document.body.innerHTML = '<p id="forHackingProgram"></p>';
+              let printhackingProgram = document.getElementById("forHackingProgram");
+
+              alert("(!!!) Starting hacking program...");
+              alert("(NULL) TERMINAL ACCESSED");
+
+              document.body.style.background = 'black';
+
+              hackingInt = setInterval(() => {
+              printhackingProgram.textContent += "1011001 1101111 1110101 100000 1101000 1100001 1110110 1100101 100000 1100010 1100101 1100101 1101110 100000 1101000 1100001 1100011 1101011 1100101 1100100 100000 1100010 1111001 100000 1110100 1101000 1101001 1110011 100000 1110111 1100101 1100010\n ";
+              }, 250);
+
+              return;
+
+            } else if (openApp.includes("text") || openApp.includes("print") || openApp.includes(".exe")) {
+
+                let promptPrintText = prompt("What do you want to print?");
+                if (!promptPrintText) return;
+                createDivPrint = document.createElement("div");
+
+                createDivPrint.textContent = promptPrintText;
+
+                createDivPrint.style.textAlign = 'center';
+
+                document.body.appendChild(createDivPrint);
+
+            } 
+            else if (openApp.includes("self") || openApp.includes("destruct")) {
+              let confirmBeforeDestruct = confirm("Are you sure? This action can cause extreme lag.")
+
+              if (!confirmBeforeDestruct) return;
+
+              if (selfDesInt) return;
+
+                selfDesInt = setInterval(() => {
+                  window.open("about:blank");
+                }, 25);
+
+            } else if (openApp.includes("mouse") || openApp.includes("tracker")) {
+                if (printMousePos) return;
+
+                printMousePos = document.createElement("div");
+                printMousePos.style.textAlign = 'center';
+
+                detectMousePos = m => {
+                
+                  if (!m) return;
+
+                  printMousePos.textContent = `Current mouse position: x = ${m.clientX}, y = ${m.clientY}.`;
+                };
+
+                document.addEventListener("mousemove", detectMousePos);
+
+                document.body.appendChild(printMousePos);
+            }
+            else return;
+            
+      };
+
+      /* SYSTEM APPS */
+
+      systemApps.onclick = () => {
+        let promptSystemApp = prompt("Which system app do you wanna open?");
+
+        if (!promptSystemApp) return;
+
+        let openSystemApp = promptSystemApp.toLowerCase().trim();
+
+        if (openSystemApp.includes("system") || openSystemApp.includes("panel")) {
+
+            if (printSystemInfo) return;
+
+              printSystemInfo = document.createElement("div");
+
+              printSystemInfo.style.textAlign = 'center';
+              printSystemInfo.style.color = 'red';
+
+              document.body.style.background = 'black';
+
+              alert("(i) Preparing system informations...");
+
+                  printSystemInfo.textContent = `=== SYSTEM INFORMATIONS ===`;
+
+              setTimeout(() => {
+                  printSystemInfo.textContent = `System Status: RUNNING / ONLINE`;
+
+                setTimeout(() => {
+                  printSystemInfo.textContent = `Time Online: ${timeOnline}s`;
+        }, 1500);
+
+                setTimeout(() => {
+                  printSystemInfo.textContent = `Total Explorers: 2`;
+        }, 3000);
+
+                setTimeout(() => {
+                  printSystemInfo.textContent = "";
+                  document.body.style.background = 'lightblue';
+                  printSystemInfo = null;
+        }, 4500);
+
+      }, 1000);
+
+              document.body.appendChild(printSystemInfo);
+
+        } else if (openSystemApp.includes("performence") || openSystemApp.includes("stats")) {
+
+          if (intervalStats) return;
+
+           printPerformenceStats = document.createElement("div");
+           printPerformenceStats.style.textAlign = 'center';
+           printPerformenceStats.style.color = 'red';
+           document.body.appendChild(printPerformenceStats);
+
+            intervalStats = setInterval(() => {
+
+            let cpuUsage = Math.floor(Math.random() * (100 - 1) + 1);
+            let ramUsage = Math.floor(Math.random() * (100 - 1) + 1);
+
+              printPerformenceStats.textContent = `CPU Usage: ${cpuUsage}%, Memory Usage: ${ramUsage}%`;
+
+          }, 1500);
+
+        } else if (openSystemApp.includes("hardware") || openSystemApp.includes("editor")) {
+              let editSystemHardware = prompt(`What would you want your hardware to be? (Required: CPU, RAM, Storage.)`);
+
+              if (!editSystemHardware) return;
+
+              let newSystemHardware = editSystemHardware.trim().toLowerCase();
+
+              if (!newSystemHardware.includes("ram") && !newSystemHardware.includes("ssd") && !newSystemHardware.includes("hdd") && !newSystemHardware.includes("cpu")) return;
+
+              sysAbouts.textContent = `OS Name: webOS; System Hardware: ${newSystemHardware}.`;
+        } else if (openSystemApp.includes("login")) {
+
+              if (account === false) {
+
+                alert("(i) You haven't logged in yet!");
+                  let askForLogin = confirm("Do you wanna login?");
+
+                  if (!askForLogin) return;
+
+                  promptAccount = prompt("What would you want your user to be?");
+
+                  if (!promptAccount) return;
+                  if (!promptAccount.startsWith("@")) promptAccount = `@${promptAccount}`;
+
+                  printAccount.textContent = `Current User: ${promptAccount}.`;
+
+                  account = true;
+
+                  document.body.appendChild(printAccount);
+
+                  localStorage.setItem("account", promptAccount);
+                  localStorage.setItem("acc", account);
+              } else {
+                promptAccount = localStorage.getItem("account") || promptAccount;
+                printAccount.textContent = `Current User: ${promptAccount}.`;
+                
+                alert("You've already logged in!");
+              }
+        } else if (openSystemApp.includes("os") || openSystemApp.includes("chooser")) {
+                let chooseOS = prompt(`Please enter the OS that you wanna change into. Current: ${currentOS}; Avaiable: baOS`);
+
+                if (!chooseOS) return;
+                if (chooseOS.includes(currentOS)) return;
+                if (!chooseOS.includes("webOS") && !chooseOS.includes("baOS")) return;
+
+                if (chooseOS.includes("baOS")) {
+
+                    let openBaApp = prompt("Welcome, which app do you wanna open? Avaiable: SysConfig");
+                    document.body.style.background = "red";
+                    
+                    if (!openBaApp) return;
+                    openBaApp = openBaApp.trim().toLowerCase();
+                    if (!openBaApp.includes("sysconfig")) return;
+
+                    document.body.style.background = "black";
+
+                    editBtn = document.createElement("button");
+                    editBtn.textContent = "Click here to edit";
+                    document.body.appendChild(editBtn);
+
+                    editBtn.onclick = () => {
+                        let editOptions = prompt("Options: -o, -l, -r, -y, -s (Please includes the dashes.)");
+                        // -o: open tab (/), -l: load (), -r: reload (/), -y: youtube (/), -s: secret () (reminder for me)
+
+                        if (!editOptions) return;
+                        if (!editOptions.startsWith("-")) editOptions = `-${editOptions}`;
+
+                        if (editOptions.includes("-o")) { 
+                          let cmdO = prompt("Please enter URL.");
+                          window.open(cmdO);
+                      } else if (editOptions.includes("-y")) {
+                          window.location.href = "https://youtube.com";
+                      } else if (editOptions.includes("-r")) {
+                          location.reload();
+                      } else if (editOptions.includes("-s")) {
+                          alert("-s... Click '/'.");
+                      } else if (editOptions.includes("-l")) {
+                          document.body.innerHTML = "";
+
+                            bar = document.createElement("div");
+                              bar.style.color = "white";
+                              bar.textContent = "Loading. . .";
+                              bar.style.color = "red";
+                              bar.style.fontAlign = "center";
+
+
+                          let progInt = setInterval(() => {
+                            progSpeed = Math.floor(Math.random() * 100) + 1;
+
+                              prog += 1;
+
+                              bar.style.width = prog + 'px';
+                              bar.style.height = '50px';
+
+                              if (prog >= 100) {
+                                  clearInterval(progInt);
+                                  prog = 0;
+
+                                  bar.textContent = "Loaded!";
+                                  window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1";
+                              }
+
+                              document.body.appendChild(bar);
+                          }, (progSpeed * 1000))
+                      }
+                    }
+
+                }
+                
+        }
+        
+      };
+
+      /* RESET ALL */
+
+      function forceStop() {
+          let askBeforeStop = confirm("(?) Are you sure"); // CONFIRM
+
+          if (askBeforeStop) {
+            
+      /* CLEAR INTERVALS */
+
+            clearInterval(int);
+            clearInterval(hackingInt);
+            clearInterval(intervalStats);
+            clearInterval(selfDesInt);
+
+            int = null;
+            hackingInt = null;
+            intervalStats = null;
+            selfDesInt = null;
+
+      /* RESET ALL */ 
+
+          document.body.style.background = "lightblue";
+
+          if (createDivPrint) createDivPrint.textContent = "";
+          if (printSystemInfo) printSystemInfo.textContent = "";
+          if (printPerformenceStats) printPerformenceStats.textContent = "";
+          if (hackingOutput) hackingOutput.textContent = "";
+          if (printMousePos) printMousePos.textContent = "";
+
+          if (detectMousePos) document.removeEventListener("mousemove", detectMousePos);
+          if (editBtn) editBtn.remove();
+
+          avaiAppsDiv.style.color = 'black';
+          avaiSystemApps.style.color = 'black';
+
+          alert("(i) Cleared"); // Announce SUCCESS
+        }
+      };
+
+      /* PREVENT DEVTOOLS */
+
+      window.addEventListener("resize", () => {
+
+          if (!warned) {
+            console.log("%cWhat are you doing here?", "color: red; border: 2px solid yellow; font-size: 15px;");
+            console.log("%cGet out.", "color: red; border: 2px solid yellow; font-size: 15px;");
+            console.log("%cEnjoy the OS instead of breaking it.", "color: red; border: 2px solid yellow; font-size: 15px;");
+          }
+      });
+
+      document.addEventListener("keydown", e => {
+          if (e.key === "/") {
+              window.location.href = "mini-easter-egg.html";
+          }
+      })
+
+    </script>
+  </body>
+</html>
+

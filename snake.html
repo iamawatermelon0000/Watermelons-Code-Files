@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title msg="what are you doing here?">Low Quality Snake Game</title>
+    </head>
+    <body>
+        <style>
+            body {
+                background: lime;
+            }
+
+            #snake {
+                position: absolute;
+                border: 2px solid black;
+                background: green;
+                width: 100px;
+                height: 10px;
+            }
+
+            #foods {
+                position: absolute;
+                width: 25px;
+                height: 25px;
+                background: red;
+                border: 1px solid black;
+            }
+        </style>
+        <div id="score">0</div>
+
+        <div id="snake"></div>
+
+        <div id="foods"></div>
+
+        <script>
+            let mainObj = document.getElementById("snake");
+            let foodObj = document.getElementById("foods");
+
+            let srcSnake = document.getElementById("score");
+
+            let score = parseInt(localStorage.getItem("score") || 0);
+
+            let x = 10, y = -10;
+            let posX = 0, posY = 0;
+            let width = parseInt(localStorage.getItem("width") || 0);
+
+            let documentWidth = window.innerWidth;
+            let documentHeight = window.innerHeight;
+
+            srcSnake.textContent = score;
+
+        localStorage.setItem("score", score);
+        localStorage.setItem("width", width);
+
+            document.addEventListener("keydown", e => {
+                if (e.key === "w") y -= 10;
+                if (e.key === "s") y += 10;
+
+                if (e.key === "d") x += 10;
+                if (e.key === "a") x -= 10;
+
+                mainObj.style.top = y +'px';
+                mainObj.style.left = x + 'px';
+            });
+
+            function rerollPos() {
+                posX = Math.floor(Math.random() * (documentWidth - 25));
+                posY = Math.floor(Math.random() * (documentHeight - 25));
+
+                if (posX === x && posY === y) {
+                    rerollPos(); 
+                    return;
+                }
+
+                foodObj.style.top = posY + 'px';
+                foodObj.style.left = posX + 'px';
+            };
+
+            rerollPos();
+
+            setInterval(() => {
+                let mainPos = mainObj.getBoundingClientRect();
+                let foodPos = foodObj.getBoundingClientRect();
+
+                if (mainPos.left < foodPos.right 
+                && mainPos.right > foodPos.left 
+                &&mainPos.top < foodPos.bottom 
+                &&mainPos.bottom > foodPos.top
+            ) {
+        score++;
+        srcSnake.textContent = score;
+
+        mainObj.style.width = (mainObj.offsetWidth + 10) + 'px';
+
+        rerollPos();
+        }
+
+        localStorage.setItem("score", score);
+        localStorage.setItem("width", width);
+
+    }, 100);
+            
+        </script>
+    </body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>file_downloader.stat</title>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #startBTN {
+        width: 250px;
+        height: 175px;
+        
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 25px;
+      }
+
+      #deleteBTN {
+        background: white;
+        color: white;
+        
+        border: none;
+
+        position: fixed;
+        top: 0;
+        left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <button title="CLICK HERE TO DELETE THE WEIRD FILE!!!!" id="deleteBTN" type="button" onclick="deleteFile()">Don't download and delete the file</button>
+
+    <button id="startBTN" type="button" onclick="start()">Download & Open a random file from the internet</button>
+
+    <script>
+      let cleared = false;
+      let iErr;
+      let tWait;
+
+      function start() {
+
+        if (!cleared) {
+          document.body.innerHTML = "";
+          document.body.style.background = 'black';
+          cleared = true;
+        }
+
+        if (tWait) tWait = null;
+
+      if (!iErr) {
+
+        iErr = setInterval(() => {
+
+        let err1 = document.createElement("p");
+        let err2 = document.createElement("P");
+
+        let x = Math.floor(Math.random() * (window.innerWidth - 100)); 
+        let y = Math.floor(Math.random() * (window.innerHeight - 100));
+
+        let posX = Math.floor(Math.random() * (window.innerWidth - 100));
+        let posY = Math.floor(Math.random() * (window.innerHeight - 100));
+
+        if (x === y || posX === posY) {
+          x = Math.floor(Math.random() * (window.innerWidth - 100)); 
+          y = Math.floor(Math.random() * (window.innerHeight - 100));
+
+          posX = Math.floor(Math.random() * (window.innerWidth - 100));
+          posY = Math.floor(Math.random() * (window.innerHeight - 100));
+        }
+
+        err1.style.position = 'absolute';
+        err2.style.position = 'absolute';
+
+        err1.style.border = '2px solid white';
+        err2.style.border = '2px solid white';
+
+        err1.style.background = 'red';
+        err2.style.background = 'red';
+
+        err1.textContent = 'GET HACKED';
+        err2.textContent = 'GET HACKED';
+
+        err1.style.width = '100px';
+        err1.style.height = '100px';
+
+        err2.style.width = '100px';
+        err2.style.height = '100px';
+
+        err1.style.left = x + 'px';
+        err1.style.top = y + 'px';
+
+        err1.style.textAlign = 'center';
+        err2.style.textAlign = 'center';
+
+        err2.style.left = posX + 'px';
+        err2.style.top = posY + 'px';
+
+        document.body.appendChild(err1);
+        document.body.appendChild(err2);
+
+        }, 200);
+
+        setTimeout(() => {
+          if (iErr) clearInterval(iErr);
+          document.body.innerHTML = "";
+
+          alert("it spreaded through your internet, ur whole house is now infected");
+          alert("same with trojans, they can spread");
+          alert("dont donwload files that u dont trust next time");
+
+          setTimeout(() => {
+          window.location.replace("about:blank");
+          }, 2500); 
+
+        }, 10000);
+      }
+
+      const b = new Blob(["hello"], {
+          type: "text/plain"
+      }); // im sorry but i have NO IDEA whats this so i used chatgpt, ill do it myslef on later files T-T, pls take this sincere apologize as an apologize
+
+      const url = URL.createObjectURL(b);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ZXhhbXBsZSB2aXJ1cyBvciB0cm9qYW4gYnV0IGp1c3QgYSBmYWtlIG1hbHdhcmUgaW4gZ2VuZXJhbA==.exe";
+      a.click();
+    }
+
+    function deleteFile() {
+      document.body.innerHTML = '';
+      document.body.style.background = 'black';
+
+      alert("You deleted the weird file!");
+      alert("And avoided a virus attack!");
+      alert("remember to not download random files that you do not trust!!!");
+
+      setTimeout(() => {
+        window.location.replace("about:blank");
+      }, 2500);
+    }
+    </script>
+
+  </body>
+</html>

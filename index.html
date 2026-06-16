@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <body>
+
+    <div id="container"></div>
+    
+    <script>
+    fetch("https://api.github.com/repos/iamawatermelon0000/My-HTML-codes/contents/").then(res => res.json()).then(f => {
+        const c = document.getElementById("container");
+
+        f.filer(file => file.name.endsWith(".html")).forEach(fi => {
+          c.innerHTML += `<a href="./${fi}.name">${fi.name}></a><br>`;
+        });
+    });
+    </script>
+  </body>
+</html>

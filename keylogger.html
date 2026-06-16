@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <p id="keys"></p>
+    <p id="clicks">Print clicks here (also the keys will be printed above)</p>
+
+    <button type="button" onclick="clear()">Clear all</button>
+
+    <script>
+      let click = 0;
+
+      let prKey = document.getElementById("keys");
+      let prClick = document.getElementById("clicks");
+
+      document.addEventListener("keydown", e => {
+        prKey.textContent += ` ${e.key}`;
+      })
+
+      document.addEventListener("click", e => {
+        prClick.textContent = `Clicked ${click += 1} times. Previous click was at: ${e.clientX}x, ${e.clientY}y`;
+      })
+
+      function clear() {
+        prKey.textContent = "Print keys here";
+
+        click = 0;
+        prClick.textContent = "Print clicks here";
+      }
+    </script>
+
+    <style>
+      #keys, #clicks {
+        color: lime;
+        font-family: 'Courier New', Courier, monospace;
+        text-align: center;
+      }
+
+      body {
+        background: black;
+      }
+
+      button {
+        color: red;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        text-align: center;
+      }
+    </style>
+  </body>
+</html>

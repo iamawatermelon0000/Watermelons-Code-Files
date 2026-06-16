@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <button type="button" onclick="del()">Totally normal app :DDDD</button>
+  </body>
+
+  <head>
+    <title>Your PC</title>
+
+    <script defer>
+      function del() {
+          document.body.innerHTML = "";
+          document.body.style.background = "blue";
+    document.body.style.fontFamily = "Lucida Console,Lucida Sans Typewriter,monaco,Bitstream Vera Sans Mono,monospace";
+          document.body.style.color = "white";
+          document.body.style.letterSpacing = "1px";
+          document.body.style.lineHeight = "20px";
+        let printErr = document.createElement("h1");
+
+        let printInfo = document.createElement("p");
+        let printInf2 = document.createElement("p");
+        let printInf3 = document.createElement("p");
+        let printInf4 = document.createElement("p");
+
+        let printPert = document.createElement("p");
+        let percent = 0;
+        let time = 1000;
+
+        printErr.textContent = ":(";
+
+        printInfo.textContent = "Your PC ran into a problem and needs to restart. We're collecting some error info, and then we'll restart for you.";
+        printInf2.textContent = "For more infomations about this issue and possible fixes, visit https://www.windows.com/stopcode";
+        printInf3.textContent = "If you call a support person, give them this info:"
+        printInf4.textContent = "Stop code: CRITICAL_PROCCESS_DIED";
+
+        printInf3.style.fontSize = "smaller";
+        printInf4.style.fontSize = "smaller";
+
+        let int = setInterval(() => {
+            percent++;
+            printPert.textContent = `Restarting, ${percent}% complete`;
+            document.body.appendChild(printPert);
+
+            if (percent >= 90) time = 3000;
+            if (percent >= 70) time = 2000;
+            if (percent >= 50) time = 1500;
+            if (percent >= 100) { 
+              alert("Windows could not start properly, preparing automatic repair.")
+              alert("Automatic repair couldn't repair you machine, launching another machine...");
+              clearInterval(int); 
+              window.location.href = "about:blank" 
+            }
+        }, time);
+
+      document.body.appendChild(printErr);
+      document.body.appendChild(printInfo);
+      document.body.appendChild(printInf2);
+      document.body.appendChild(printInf3);
+      document.body.appendChild(printInf4);
+      }
+    </script>
+  </head>
+</html>

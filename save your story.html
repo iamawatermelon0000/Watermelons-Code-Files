@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Save your story! (img support coming)</title>
+
+    <style>
+
+      #inputArea {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        flex-direction: column;
+        gap: 50px;
+
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+        
+      }
+
+      textarea {
+        width: 325px;
+        height: 168px;
+
+        font-weight: bold;
+        font-style: italic;
+        font-size: 25px;
+
+        text-align: center;
+        resize: none;
+      }
+
+      button {
+        width: 250px;
+        height: 100px;
+      }
+
+      body {
+        text-align: center;
+        transition: transform 0.5s ease;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="inputArea">
+      <textarea id="text" placeholder="Enter your story here!"></textarea>
+      <button id="btn" type="button" onclick="upload()">Upload!</button>
+    </div>
+
+    <script>
+
+      let c = Number(0);
+
+      function upload() {
+        c++; // SOFJSOIFJSOAIFASOFJF C++ REFERENCE LETS HGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+        let t = document.getElementById("text").value;
+        let s = localStorage.getItem("pr");
+        let b = document.getElementById("btn");
+        let d = 0;
+
+        let pr = document.createElement("p");
+        pr.style.border = '2px solid black';
+        pr.style.fontFamily = 'monospace';
+
+        pr.style.fontWeight = 'bolder';
+        pr.style.fontStyle = 'italic';
+        pr.style.fontSize = '17px'
+
+        pr.textContent = `${c}: ${t}`;
+
+        let i = setInterval(() => {
+          document.body.style.transform = `rotate(${d += 30}deg)`;
+
+          pr.textContent = `PAGE BUGGED. PAGE BUGGED.`
+          b.click();
+        }, 16);
+
+        document.body.appendChild(pr);
+      }
+    </script>
+
+  </body>
+</html>

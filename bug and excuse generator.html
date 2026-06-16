@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Bug & Excuse Generator (BUGS ARE FROM CHATGPT IM JUST A HUMAN)</title>
+
+    <style>
+      .main {
+        font-family:'Courier New', Courier, monospace;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 20px;
+        color: white;
+        
+        text-align: center;
+
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+        gap: 50px;
+      }
+
+      body {
+        background: black;
+        display: flex;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      button {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  
+  <body>
+
+    <div class="main">Bug generator:
+      <p id="bug">Internal_Page_Error: [[NO_ACTIVITIES]]</p>
+      <button type="button" onclick="generate()">Generate bug</button>
+
+      <button type="button" onclick="fix()">Fix Bug</button>
+    </div>
+
+    <div class="main">Excuse generator:
+      <p id="exc">Internal_Page_Error: [[EXCUSE:_too_lazy]]</p>
+      <button type="button" onclick="genEx()">Generate excuse</button>
+    </div>
+
+    <script>
+      // bugs are from chatgpt, im just a human i cant generate 1e+999 bugs
+      const bugs = [
+  "Uncaught TypeError: undefined is not a function",
+  "Uncaught TypeError: null is not an object",
+  "Uncaught TypeError: Cannot read properties of undefined",
+  "Uncaught TypeError: Cannot read properties of null",
+  "Uncaught TypeError: x is not a function",
+  "Uncaught TypeError: Assignment to constant variable",
+  "Uncaught TypeError: Cannot set properties of undefined",
+  "Uncaught TypeError: Cannot set properties of null",
+  "Uncaught TypeError: object is not iterable",
+  "Uncaught TypeError: Failed to fetch",
+
+  "Uncaught ReferenceError: x is not defined",
+  "Uncaught ReferenceError: y is not defined",
+  "Uncaught ReferenceError: document is not defined",
+  "Uncaught ReferenceError: window is not defined",
+  "Uncaught ReferenceError: event is not defined",
+  "Uncaught ReferenceError: require is not defined",
+  "Uncaught ReferenceError: module is not defined",
+  "Uncaught ReferenceError: exports is not defined",
+  "Uncaught ReferenceError: process is not defined",
+  "Uncaught ReferenceError: Cannot access before initialization",
+
+  "Uncaught SyntaxError: Unexpected token ')'",
+  "Uncaught SyntaxError: Unexpected token '}'",
+  "Uncaught SyntaxError: Unexpected token ']'",
+  "Uncaught SyntaxError: Unexpected end of input",
+  "Uncaught SyntaxError: missing ) after argument list",
+  "Uncaught SyntaxError: missing ] after element list",
+  "Uncaught SyntaxError: missing } after property list",
+  "Uncaught SyntaxError: Identifier has already been declared",
+  "Uncaught SyntaxError: Invalid or unexpected token",
+  "Uncaught SyntaxError: Illegal return statement",
+
+  "Uncaught RangeError: Maximum call stack size exceeded",
+  "Uncaught RangeError: Invalid array length",
+  "Uncaught RangeError: Invalid time value",
+  "Uncaught RangeError: toFixed() digits argument must be between 0 and 100",
+  "Uncaught RangeError: Invalid string length",
+  "Uncaught RangeError: Repeat count must be non-negative",
+  "Uncaught RangeError: Offset is outside bounds",
+  "Uncaught RangeError: Invalid typed array length",
+  "Uncaught RangeError: Invalid code point",
+  "Uncaught RangeError: Stack overflow",
+
+  "Uncaught URIError: URI malformed",
+  "Uncaught URIError: malformed URI sequence",
+  "Uncaught URIError: Failed to decode URI component",
+  "Uncaught URIError: Invalid URI",
+  "Uncaught URIError: URI contains invalid character",
+
+  "Uncaught EvalError: Invalid use of eval",
+  "Uncaught EvalError: Code generation from strings disallowed",
+  "Uncaught EvalError: eval execution blocked",
+
+  "Uncaught Error: Network Error",
+  "Uncaught Error: Request failed",
+  "Uncaught Error: Connection lost",
+  "Uncaught Error: Server returned 500",
+  "Uncaught Error: Authentication failed",
+  "Uncaught Error: Access denied",
+  "Uncaught Error: Resource not found",
+  "Uncaught Error: Timeout exceeded",
+  "Uncaught Error: Invalid configuration",
+  "Uncaught Error: Unknown exception",
+
+  "Uncaught DOMException: The operation is insecure",
+  "Uncaught DOMException: Permission denied",
+  "Uncaught DOMException: The user aborted a request",
+  "Uncaught DOMException: The object is in an invalid state",
+  "Uncaught DOMException: Node was not found",
+  "Uncaught DOMException: Failed to execute appendChild",
+  "Uncaught DOMException: Failed to execute removeChild",
+  "Uncaught DOMException: Failed to execute querySelector",
+  "Uncaught DOMException: The element has no parent node",
+  "Uncaught DOMException: Quota exceeded",
+
+  "Unhandled Promise Rejection: TypeError",
+  "Unhandled Promise Rejection: ReferenceError",
+  "Unhandled Promise Rejection: Network Error",
+  "Unhandled Promise Rejection: Timeout Error",
+  "Unhandled Promise Rejection: Server Error",
+  "Unhandled Promise Rejection: Authentication Error",
+  "Unhandled Promise Rejection: Invalid JSON",
+  "Unhandled Promise Rejection: AbortError",
+  "Unhandled Promise Rejection: FetchError",
+  "Unhandled Promise Rejection: Unknown Error",
+
+  "GET /favicon.ico 404 (Not Found)",
+  "GET /api/users 404 (Not Found)",
+  "GET /config.json 404 (Not Found)",
+  "POST /api/login 500 (Internal Server Error)",
+  "GET /script.js net::ERR_FAILED",
+  "GET /style.css net::ERR_ABORTED",
+  "GET /data.json net::ERR_CONNECTION_REFUSED",
+  "GET /api/status net::ERR_TIMED_OUT",
+  "GET /image.png net::ERR_NAME_NOT_RESOLVED",
+  "WebSocket connection failed",
+
+  "Warning: Infinite loop detected",
+  "Warning: Memory leak suspected",
+  "Warning: Too many event listeners",
+  "Warning: Duplicate key detected",
+  "Warning: Deprecated API used",
+  "Warning: Non-passive event listener",
+  "Warning: Unexpected NaN",
+  "Warning: Unexpected undefined value",
+  "Warning: Layout thrashing detected",
+  "Warning: Script execution took too long"
+];
+
+    const excuses = [
+      "too lazy",
+      "cat stepped on keyboard",
+      "not enough sleep",
+      "breathed",
+      "no money big big huge giant problem",
+      "it's 3am",
+      "watermelon told me so",
+      "i fell on my bed and the phone appeared out of nowhere",
+      "yt short is too interesting",
+      "tiktok is too interesting",
+      "bread 👍",
+      "lwk dont want to",
+      "i bit myself"
+   ]
+
+    let prBug = document.getElementById("bug");
+    let prExc = document.getElementById("exc");
+
+    function generate() {
+      let b = bugs[Math.floor(Math.random() * bugs.length)];
+      prBug.textContent = `Generated: ${b}`;
+    }
+
+    function fix() {
+      prBug.textContent = `Bug fixed.`;
+    }
+
+    function genEx() {
+      let e = excuses[Math.floor(Math.random() * excuses.length)];
+      prExc.textContent = `Generated: ${e}`;
+    }
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>My firstttttttttt ANIMATION!!!!!!</title>
+
+    <style>
+      #block {
+        width: 50px;
+        height: 50px;
+
+        position: absolute;
+        display: flex;
+        
+        background: red;
+        top: 250px;
+
+        text-align: center;
+        font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-weight: bold;
+        font-size: 30px;
+
+        transition: transform 0.5s ease;
+
+        justify-content: center;
+        align-items: center;
+
+        z-index: 3;
+      }
+
+      #road {
+        background: black;
+        border: 2px solid burlywood;
+
+        top: 300px;
+        position: fixed;
+        height: 80px;
+
+        z-index: 2;
+      }
+
+      #sky {
+        background: linear-gradient(to bottom, #4da6ff, #87ceeb, #bde7ff, #ffffff);
+
+        position: fixed;
+        top: 0;
+
+        z-index: 1;
+      }
+
+      #dirt {
+        background: darkred;
+
+        position: fixed;
+        bottom: 0;
+
+        z-index: 4;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <div id="sky"></div>
+
+    <div id="block">
+      <p id="face">.-.</p>
+    </div>
+
+    <div id="road">
+    </div>
+
+    <div id="dirt"></div>
+
+    <script>
+      let int;
+
+      let box = document.getElementById("block");
+      let bar = document.getElementById("road");
+      let pr = document.getElementById("face");
+      let sk = document.getElementById("sky");
+      let dr = document.getElementById("dirt");
+
+      let x = 0;
+      let rotated = true;
+
+      document.addEventListener("DOMContentLoaded", () => {
+
+        bar.style.width = window.innerWidth + 'px';
+
+        sk.style.height = bar.offsetTop + 'px';
+        sk.style.width = window.innerWidth + 'px';
+
+        dr.style.height = ((window.innerHeight / 2.45).toFixed(0)) + 'px';
+        dr.style.width = window.innerWidth + 'px';
+
+      int = setInterval(() => {
+
+        x += 30;
+        box.style.left = x + 'px';
+
+        if (x >= (window.innerWidth / 2) && rotated) {
+
+          rotated = false;
+          box.style.transform = 'rotate(-45deg)';
+
+          setTimeout(() => {
+            box.style.transform = 'rotate(0)';
+          }, 900);
+        }
+
+        if (x >= window.innerWidth) { 
+
+          clearInterval(int); 
+
+          box.style.background = 'black';
+          box.style.color = 'white';
+          pr.textContent = '👁';
+        }
+
+      }, 500);
+    });
+    
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>get groceries</title>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+
+        transition: transform 0.5s ease;
+      }
+
+      #items {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 50px;
+
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-weight: bold;
+      }
+
+      #flour, #potato {
+        background: burlywood;
+      }
+
+      #meat {
+        background: pink
+      }
+
+      #veggies, #cabbage {
+        background: lime;
+      }
+
+      #water {
+        background: cyan;
+      }
+
+      #pasta {
+        background: yellow;
+      }
+
+      #printing {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 25px;
+
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        font-style: italic;
+      }
+
+      button {
+        width: 175px;
+        height: calc(175px / 2);
+
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="items">
+      <div id="flour">flour</div>
+      <div id="meat">meat</div>
+      <div id="veggies">veggies</div>
+      <div id="potato">potatoto</div>
+      <div id="water">water bottle</div>
+      <div id="cabbage">cabbage</div>
+      <div id="pasta">pasta</div>
+    </div>
+
+    <div id="printing">
+      <p id="shoppingList">Shopping list</p>
+      <p id="currentScore">Current score:</p>
+      <p id="joinTimer">Timer: 0s (a random event orcurrs every 10s at a 50% chance)</p>
+      <p id="boughtItems">Selected Items will be here</p>
+    </div>
+
+    <button type="button" onclick="buyItem()">Buy item</button>
+    <button type="button" onclick="putBack()">Put back</button>
+
+    <script>
+
+      const list = [
+        "flour",
+        "meat",
+        "veggies",
+        "potato",
+        "water",
+        "cabbage",
+        "pasta"
+      ];
+      let item;
+      let copiedList;
+
+      let index;
+      let orderIndex = 0;
+
+      let i;
+      let maxI = 3;
+
+      let score = Number(localStorage.getItem("score") || 0);
+
+      let order;
+      let corrOrder;
+
+      let prList = document.getElementById("shoppingList");
+      let prItem = document.getElementById("boughtItems");
+      let prScore = document.getElementById("currentScore");
+      let prTime = document.getElementById("joinTimer");
+
+      let fl = document.getElementById("flour");
+      let mt = document.getElementById("meat");
+      let vg = document.getElementById("veggies");
+      let pt = document.getElementById("potato");
+      let wt = document.getElementById("water");
+      let cb = document.getElementById("cabbage");
+      let ps = document.getElementById("pasta");
+
+      update();
+      save();
+      prScore.textContent = `Current score: ${score}`;
+
+      document.addEventListener("click", e => {
+        if (e.target === fl) { order.push("flour"); prItem.textContent = `Selected: ${order}`; orderIndex++; }
+        if (e.target === mt) { order.push("meat"); prItem.textContent = `Selected: ${order}`; orderIndex++; }
+        if (e.target === vg) { order.push("veggies"); prItem.textContent = `Selected: ${order}`; orderIndex++; }
+        if (e.target === pt) { order.push("potato"); prItem.textContent = `Selected: ${order}`; orderIndex++; }
+        if (e.target === wt) { order.push("water"); prItem.textContent = `Selected: ${order}`; orderIndex++; }
+        if (e.target === cb) { order.push("cabbage"); prItem.textContent = `Selected: ${order}`; orderIndex++; }
+        if (e.target === ps) { order.push("pasta"); prItem.textContent = `Selected: ${order}`; orderIndex++; }
+
+        save();
+      });
+
+      const events = [
+        "rotate",
+        "thick black",
+        "clear all",
+        "randomized"
+    ];
+
+    let iEvent;
+    let iRandom;
+    let iRotate;
+
+    let time = 0;
+    let setTime;
+
+    let deg = 0;
+
+    iEvent = setInterval(() => {
+      time++;
+      prTime.textContent = `Timer: ${time}s (a random event orcurrs every 10s at a 50% chance)`
+      
+      if (time % 10 === 0 && Math.random() < 0.5) {
+        
+          let ev = events[Math.floor(Math.random() * events.length)];
+
+          if (ev === "rotate") {
+
+            if (!iRotate) {
+            iRotate = setInterval(() => {
+              document.body.style.transform = `rotate(${deg += 15}deg)`;
+            }, 62);
+
+          }
+
+            if (iRotate) {
+              setTimeout(() => {
+              location.reload();
+            }, 5000);
+          }
+
+        } else if (ev === "thick black") {
+            document.body.style.background = "black";
+            alert("power outage!");
+
+            setTimeout(() => {
+              document.body.style.background = "white";
+              alert("power is back!");
+            }, 5000);
+
+        } else if (ev === "clear all") {
+            
+          document.body.innerHTML = "";
+          alert("out of stock, refiling...");
+
+          setTimeout(() => {
+            location.reload();
+          }, 3500);
+
+        } else if (ev === "randomized") {
+
+          if (!iRandom) {
+            alert("the system is bugging!!!!");
+            alert("dont do anything for the next 5 seconds!")
+            iRandom = setInterval(() => {
+              update();
+            }, 32);
+          }
+
+          setTimeout(() => {
+            clearInterval(iRandom);
+            iRandom = null;
+          }, 5000);
+
+        }
+
+      }
+    }, 1000);
+
+      function buyItem() {
+        if (order.join("🍉") === corrOrder.join("🍉")) {
+
+          alert("You're correct!");
+          
+          score++;
+          prScore.textContent = `Current score: ${score}`;
+
+          prItem.textContent = "";
+          prList.textContent = "";
+
+          update();
+          save();
+
+        } else if (order.join("🍉") !== corrOrder.join("🍉")) {
+
+          alert("Not quite...");
+          return;
+
+        }
+      }
+
+      function putBack() {
+        order.pop();
+        prItem.textContent = `Selected: ${order}`;
+      }
+
+      function update() {
+          copiedList = [...list];
+          item = [];
+
+          order = [];
+          corrOrder = [];
+
+          if (score >= 25) { 
+            maxI = 7; 
+          } else if (score >= 15) {
+            maxI = 6;
+          } else if (score >= 10) {
+            maxI = 5;
+          } else if (score >= 5) {
+            maxI = 4;
+          }
+
+          for (i = 0; i < maxI; i++) {
+
+          index = Math.floor(Math.random() * copiedList.length);
+          item.push(copiedList[index]);
+          copiedList.splice(index, 1);
+
+        }
+
+        prList.textContent = `Shopping list: ${item}`;
+        corrOrder = [...item];
+
+        save();
+      }
+
+      function save() {
+        localStorage.setItem("score", score);
+      }
+
+    </script>
+
+  </body>
+</html>

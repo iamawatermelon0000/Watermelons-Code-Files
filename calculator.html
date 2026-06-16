@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+  <html>  
+<body>  
+
+  <div>
+<input type="number" id="eA">  
+
+<!-- eA = element A, eB = element B --> 
+ 
+<input type="number" id="eB"> 
+
+</div>
+<div>
+
+ <select id="ops">
+  <option>Addition</option>
+  <option>Subtraction</option>
+  <option>Multiplication</option>
+  <option>Division</option>
+  <option>Power</option>
+  <option>Average</option>
+  <option>Square Root</option>
+  <option>Natual Logarithm</option>
+  <option>Factorial</option>
+  <option>Remainder</option>
+                    </select>
+
+   <button type="button" onclick="calculateE()">Calculate</button>
+
+   </div>
+
+ <p>Enter a number in each input area, then select the operator you wanna use with each input</p>
+
+    <p id="print">The result is: </p>
+
+<script>  
+function calculateE() {  
+  let eA = Number(document.getElementById("eA").value) ; 
+ 
+let eB = Number(document.getElementById("eB").value) ;  
+
+let prnt = document.querySelector("#print");
+
+  
+let c = document.getElementById("ops").value;
+
+if (isNaN(eA) || isNaN(eB)) {  
+  alert("(!) Invalid Value!") 
+   return; 
+}  
+  
+if (c === "Addition") {  
+    prnt.textContent = `The result is: ${eA + eB}.`;
+        return { result: eA + eB };  
+}   
+  
+else if (c === "Subtraction") {  
+    prnt.textContent = `The result is: ${eA - eB}.`;
+      return { result: eA - eB }  
+}   
+  
+else if (c === "Multiplication") {  
+    prnt.textContent = `The result is: ${eA * eB}.`;
+      return { result: eA * eB }  
+}   
+  
+else if (c === "Division") {  
+    prnt.textContent = `The result is: ${eA / eB}.`;
+        return { result: eA / eB }  
+}   
+  
+else if ( c === "Power") {  
+    prnt.textContent = `The result is: ${eA ** eB}.`;
+     return { result: eA ** eB }  
+}   
+
+else if (c === "Average") {
+
+    prnt.textContent = `The result is: ${(eA + eB) / 2}.`;
+      return { result: (eA + eB) / 2 }
+}
+
+else if (c === "Square Root") {
+
+    alert('(i) The calculator will only calculate Element A (the first input)');
+
+    prnt.textContent = `The result is: ${Math.sqrt(eA)}.`;
+      return { result: Math.sqrt(eA) }
+}
+
+else if (c === "Natual Logarithm") {
+
+    alert('(i) The calculator will only calculate Element A (the first input)');
+
+    prnt.textContent = `The result is: ${Math.log(eA)}`;
+      return { result: Math.log(eA) }
+
+}
+
+else if (c === "Factorial") {
+    alert('(i) The calculator will only calculate Element A (the first input)');
+
+    let result = 1;
+
+    while (eA > 0) {
+        result *= eA;
+        eA -= 1;
+    }
+
+    prnt.textContent = `The result is: ${result}.`;
+}
+
+else if (c === "Remainder") {
+    prnt.textContent = `The remainder is: ${eA % eB}.`;
+}
+
+    document.getElementById("eA").value = "";
+    document.getElementById("eB").value = "";
+
+}
+</script>  
+</body>  
+</html>

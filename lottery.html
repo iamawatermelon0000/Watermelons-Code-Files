@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <div>Enter a 4 number ticket only: 
+        <input type="number" id="numb">
+        <button type="button" onclick="start()">Start Lottery</button>
+        <button type="button" onclick="reroll()">Click here to reroll</button>
+        </div>
+
+        <p id="print"></p>
+        <p id="printWN"></p>
+        <p id="printCash">You have: $0.</p>
+
+
+
+        <script>
+            let print = document.getElementById("print");
+            let print2 = document.getElementById("printWN");
+            let print3 = document.getElementById("printCash");
+
+            let cash = 0;
+            let debt = false;
+            let lott;
+            let loan = 0;
+
+            function start() {
+
+                cash -= 100;
+                lott = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+                let number = parseInt(document.getElementById("numb").value);
+
+                 if (isNaN(number)) return;
+
+                if (number >= 10000 || number < 0) {
+                    alert(`Invalid ticket number: ${number}.`);
+                    number = 0;
+                    document.getElementById("numb").value = "";
+                    return;
+                } else if (number < 1000) {
+                    alert(`Invalid ticket number: ${number}.`);
+                    number = 0;
+                    document.getElementById("numb").value = "";
+                    return;
+                } 
+
+                print.textContent = `Your ticket number is: ${number}.`;
+                print3.textContent = `You currently have: $${cash} in your account.`;
+
+                
+
+                print2.textContent = `The winning number is: ${lott}.`;
+
+                if (cash <= -1000) {
+                    print3.textContent = `Your balance is too low. Current balance: ${cash}.`;
+
+                    setTimeout(() => {
+                        cash += 5000;
+                        print3.textContent = `We gave you $5k. Current balance: ${cash}.`;
+                        debt = true;
+                        loan = 5000;
+                    }, 2500)
+                }
+
+                if (number === lott) {
+                    print.textContent = 
+                        "You won! $10000 has been transferred to your account.";
+
+                        if (debt === true) {
+                            print3.textContent = `You own us $5k, with the tax of 50%. We took your rewards. Current Balance: $${cash -= (loan * 50 / 100)}.`;
+                        }
+
+                        cash += 10000;
+                    print3.textContent =
+                        `Your balance currently have: $${cash}.`;
+                        reroll();
+                        document.getElementById("numb").value = "";
+                            return;
+                } 
+            }
+
+            function reroll() {
+                lott = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+                cash -= 100;
+                start();
+            }
+
+            </script>
+    </body>
+</html>

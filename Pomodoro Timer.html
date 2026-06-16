@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    body {
+      margin: 10px;
+    }
+
+    input {
+      margin: 5px;
+      font-style: italic;
+    }
+
+    button {
+      margin: 5px;
+      font-weight: bold;
+    }
+
+  </style>
+  <body>
+    <iframe id="music"
+      src="https://www.youtube.com/embed/3pTW57TDoDo?autoplay=1&controls=0&loop=1&playlist=3pTW57TDoDo"
+      width="0"
+      height="0"
+      allow="autoplay">
+    </iframe>
+
+    <input type="text" id="subject" placeholder="Enter your subject...">
+
+    <p id="subj"></p>
+
+    <div>Select your target studying time (minute):
+
+    <select id="time">
+      <option>5</option>
+      <option>10</option>
+      <option>15</option>
+      <option>20</option>
+      <option>25</option>
+    </select>
+    </div>
+
+    <button type="button" onclick="start()">Start here</button>
+    <button type="button" onclick="changeTheme()">Change Theme</button>
+
+    <p id="currentTime"></p>
+
+    <script>
+      let started = false;
+
+      function start() {
+
+        if (started) return;
+        started = true;
+
+        let timer = parseFloat(document.getElementById("time").value * 60);
+        let printTime = document.getElementById("currentTime");
+
+        let subject = document.getElementById("subject").value;
+
+        if (subject === "") {
+          let ask = prompt("Please enter your subject");
+
+          if (ask === "") {
+            alert("ahem ahem.");
+            return;
+          };
+          subject = ask;
+        }
+
+        document.getElementById("subj").textContent = `The current subject is: ${subject}.`;
+
+        
+
+        const int = setInterval(() => {
+          timer--;
+
+          printTime.textContent = `Time left: ${timer}s`;
+
+          if (timer === 0) {
+            clearInterval(int);
+            alert("Your time is over!");
+
+            timer = 0;
+
+            return;
+          }
+        }, 1000);
+
+        setTimeout(() => {
+          started = false;
+        }, timer);
+
+      };
+
+      function changeTheme() {
+        let themePrompt = 
+          prompt("Which color do you want to change into? (If the color isn't valid then the theme will be white.)");
+        let themeValue = themePrompt;
+
+        document.body.style.background = themeValue;
+      }
+    </script>
+  </body>
+</html>

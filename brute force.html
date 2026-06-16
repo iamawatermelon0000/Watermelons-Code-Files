@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <body>
+
+        <div>
+        <button type="button" onclick="start()">
+            Click me to start brute forcing
+        </button>
+
+        <button type="button" onclick="reset()">
+            Click me to clear + reset the number
+        </button>
+
+        <button type="button" onclick="stop()">
+            Having trouble? Click me to stop/refresh
+        </button>
+        </div>
+
+        <p id="print">Total Attempts: </p> <!-- my favorite: print id for p-->
+        <p id="print2">Current Guess: </p>
+
+        <script>
+
+            let password = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+            let attempts = Number(localStorage.getItem("attempts")) || 0;
+            let guesses = Number(localStorage.getItem("guesses")) || 0;
+
+            document.querySelector("#print").textContent = `Total Attempts: ${attempts}`;
+                    document.querySelector("#print2").textContent = `Current Guess: ${guesses}`;
+            let interval;
+
+            function start() {
+
+                if (interval) {
+                    alert("Seems like you've clicked start already.");
+                    return;
+                }
+
+                alert("(!) Brute forcing started.");
+                alert("(i) The password starts from 1000 to 9999");
+                
+
+                if (!guesses) guesses = 999;
+
+                interval = setInterval(() => {
+
+                    attempts++;
+                    guesses++;
+
+                    document.querySelector("#print").textContent = `Total Attempts: ${attempts}`;
+                    document.querySelector("#print2").textContent = `Current Guess: ${guesses}`;
+
+                       if (guesses === password) {
+
+                    document.querySelector("#print").textContent = 
+                    `The password was: ${password}, total attempts: ${attempts}`;
+                    clearInterval(interval);
+
+                }
+
+                  localStorage.setItem("attempts", attempts);
+                    localStorage.setItem("guesses", guesses);
+                }, 2);
+            }
+
+            function reset() {
+                attempts = 0;
+                document.querySelector("#print").textContent = `Total Attempts: ${attempts}`;
+
+                guesses = 1000;
+                document.querySelector("#print2").textContent = `Current Guess: ${guesses}`;
+
+                password = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+                localStorage.setItem("attempts", attempts);
+                localStorage.setItem("guesses", guesses);
+
+                clearInterval(interval);
+                interval = null;
+
+            }
+
+            function stop() {
+                clearInterval(interval);
+                interval = null;
+
+                alert("(i) Brute forcing stopped/refreshed.");
+
+                localStorage.setItem("attempts", attempts);
+                localStorage.setItem("guesses", guesses);
+
+            }
+
+        </script>
+
+    </body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <p id="number">The current number is: </p>
+        <p id="cash">Your current balance: </p>
+
+        <div>
+            <button type="button" onclick="higher()">Higher</button>
+            <button type="button" onclick="lower()">Lower</button>
+            <button type="button" onclick="reroll()">Reroll</button>
+            <button type="button" onclick="hint()">Buy hint for $10000</button>
+        </div>
+
+        <script>
+            let print = document.getElementById("cash");
+            let secNum = Math.floor(Math.random() * 100);
+            let num = Math.floor(Math.random() * 100);
+            let cash = Number(localStorage.getItem("cash") || 0);
+
+            print.textContent = `Your current balance: ${cash}.`;
+
+            document.querySelector("#number").textContent = 
+                    `The current number is: ${num}.`;
+
+            function higher() {
+                if (num >= secNum) {
+                    print.textContent = `You won! Your current balance: ${cash += 5000}.`
+                } else {
+                   print.textContent = `You lost! Your current balance: ${cash -= 1000}.`;
+            }
+
+                    reroll();
+                localStorage.setItem("cash", cash);
+
+          }
+
+            function lower() {
+                if (num <= secNum) {
+                    print.textContent = `You won! Your current balance: ${cash += 10000}.`;
+                } else {
+                   print.textContent = `You lost! Your current balance: ${cash -= 100}.`;
+                }
+
+                    reroll();
+                localStorage.setItem("cash", cash);
+
+            }
+
+            function reroll() {
+                secNum = Math.floor(Math.random() * 100);
+
+                num = Math.floor(Math.random() * 100);
+                document.querySelector("#number").textContent = 
+                    `The current number is: ${num}.`;
+
+                localStorage.setItem("cash", cash);
+            }
+
+            function hint() {
+                alert(`${secNum - num} is the result of correct - current.`);
+                cash -= 10000;
+
+                print.textContent = 
+                `Your current balance is: ${cash}.`;
+            }
+
+        
+        </script>
+    
+    </body>
+</html>

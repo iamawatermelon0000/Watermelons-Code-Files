@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>J*b simulator</title>
+
+    <style>
+      body {
+        background: black;
+        color: white;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      #printingSection {
+        color: red;
+        font-size: 19px;
+      }
+
+      #workToolsSection {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        gap: 50px;
+      }
+
+      textarea {
+        position: fixed;
+        bottom: 50px;
+        left: 10px;
+
+        width: 250px;
+        height: 150px;
+        resize: none;
+
+        font-size: 19px;
+        font-weight: bolder;
+      }
+
+      button {
+        width: 150px;
+        height: 75px;
+
+        font-size: 20px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-style: italic;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div id="printingSection">
+    <p id="worktime">Work time: 0s</p>
+    <p id="workAmount">Worked: 0 time(s)</p>
+    <p id="requirement">Requirement: inf</p>
+    <p id="infos">Account Name: ; Password:</p>
+    </div>
+    
+    <div id="workToolsSection">
+    <button type="button" onclick="work()">Work</button>
+    <button id="signInBtn" type="button" onclick="signInWork()">Sign In</button>
+    </div>
+
+    <textarea id="note" placeholder="Write notes here (wink)"></textarea>
+
+    <script>
+      let prWorkTime = document.getElementById("worktime");
+      let prReq = document.getElementById("requirement");
+      let prInfo = document.getElementById("infos");
+      let prWork = document.getElementById("workAmount");
+
+      let btn1 = document.getElementById("signInBtn");
+
+      let acc = "", pass = "";
+      const accChars = "abcdefghijklmnopqrstuvwxyz"
+      const passChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$^/?\\";
+
+      let wrongCount = 0;
+      let workTime = 0;
+
+      let c = Number(localStorage.getItem("count") || 0);
+      let signedIn = localStorage.getItem("signedIn") === "true";
+      let req = localStorage.getItem("req");
+      
+      let iResetPass = null;
+      let iWorkTime = null;
+
+      prWork.textContent = `Worked: ${c} time(s)`;
+      if (signedIn && req !== null) {
+        prReq.textContent = `Requirement: ${req}`;
+      }
+
+      function startIs() {
+
+      if (!iResetPass) {
+        iResetPass = setInterval(() => {
+
+          if (btn1.disabled) {
+          wrongCount = 0;
+          btn1.disabled = false;
+          alert("You can now sign in again.");
+          }
+        }, 30000);
+      }
+
+      if (!iWorkTime) {
+        iWorkTime = setInterval(() => {
+          workTime++;
+          prWorkTime.textContent = `Work time: ${workTime}s`;
+        }, 1000)
+      }
+
+    }
+
+    startIs();
+    alert("Sign in to start work!")
+
+      for (let i = 0; i < 12; i++) {
+        acc += accChars[Math.floor(Math.random() * accChars.length)];
+        pass += passChars[Math.floor(Math.random() * passChars.length)];
+
+        prInfo.textContent = `Account Name: ${acc}; Password: ${pass}`;
+      }
+
+      function signInWork() {
+
+        let pAcc = prompt("Please enter account name:");
+        let pPass;
+
+        if (!pAcc) return;
+        if (pAcc !== acc) {
+
+          wrongCount++;
+
+          if (wrongCount >= 3) {
+          alert("You've been blocked from the system for 30s.");
+          btn1.disabled = true;
+        }
+
+          alert("(!) Invalid account, please retry.");
+          return;
+
+        } else if (pAcc === acc) {
+          pPass = prompt("Please enter account password:");
+
+          if (!pPass) return;
+          if (pPass !== pass) {
+
+            wrongCount++;
+
+            if (wrongCount >= 3) {
+          alert("You've been blocked from the system for 30s.");
+          btn1.disabled = true;
+        }
+
+            alert("(!) Invalid password, please retry.");
+            return;
+
+          } else {
+            alert("You're signed in!")
+              signedIn = true;
+              req = Math.floor(Math.random() * (120 - 60 + 1)) + 60;
+              prReq.textContent = `Requirement: ${req}`;
+          }
+
+        }
+
+        save();
+      }
+
+      function work() {
+
+        if (!signedIn) return;
+
+        c++;
+        prWork.textContent = `Worked: ${c} time(s)`;
+        
+
+        if (c === req && signedIn) {
+
+          if (Math.random() < 0.01) {
+            alert("You can now rest!");
+            c = 0;
+            req = 0;
+
+            prWork.textContent = `Worked: ${c} time(s)`;
+            prReq.textContent = `Requirement: ${req}`;
+
+          } else {
+            alert("EXTRA DEADLINES!!!");
+            c = 0;
+
+            req = Math.floor(Math.random() * (120 - 60 + 1)) + 60;
+            prReq.textContent = `Requirement: ${req}`;
+          }
+        }
+
+        save();
+
+      }
+
+      function save() {
+        localStorage.setItem("signedIn", signedIn);
+        localStorage.setItem("count", c);
+        localStorage.setItem("req", req);
+      }
+    </script>
+
+  </body>
+</html>

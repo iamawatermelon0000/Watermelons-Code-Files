@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>physic bxo</title>
+
+    <style>
+      #buttonArea {
+        position: fixed;
+        top: 0;
+        right: 25px;
+
+        display: flex;
+        gap: 25px;
+
+        border: 2px solid black;
+      }
+
+      #deleteArea {
+        position: fixed;
+        top: 0;
+        left: 25px;
+
+        width: 150px;
+        height: 75px;
+
+        text-align: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+
+        background: red;
+      }
+
+      button {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 20px;
+
+        width: 150px;
+        height: 75px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="buttonArea">
+    <button type="button" onclick="spawnBox()">Spawn Box</button>
+    <button type="button" onclick="disableGravity()">Disable Gravity</button>
+    <button type="button" onclick="enableGravity()">Enable Gravity</button>
+    </div>
+
+    <div id="deleteArea">Drag boxes here to delete it</div>
+
+    <script>
+      let gravityOn = true;
+      let dragging = false;
+
+      let delArea = document.getElementById("deleteArea");
+
+      let x = 0, y = 0;
+      let v = 7;
+
+      let iGrav;
+      let iDel;
+      let box;
+
+      function spawnBox() {
+
+        if (box) { alert("You can only spawn 1 box at a time!"); return; };
+
+        box = document.createElement("div");
+
+        box.style.background = 'red';
+        box.style.border = '2px solid black';
+
+        box.style.width = '100px';
+        box.style.height = '100px';
+
+        box.style.position = 'absolute';
+
+        x = Math.floor(Math.random() * (window.innerWidth - 150));
+        box.style.left = x + 'px';
+
+        document.body.appendChild(box);
+
+        if (gravityOn && !iGrav) {
+
+          iGrav = setInterval(() => {
+
+            y += v;
+            if (y >= 500) y = -500;
+            box.style.top = y + 'px';
+
+          }, 16);
+        }
+
+      iDel = setInterval(() => {
+
+        if (!box) return;
+
+          let boxRect = box.getBoundingClientRect();
+          let delRect = delArea.getBoundingClientRect();
+
+          if (
+            boxRect.left < delRect.right && 
+            boxRect.right > delRect.left &&
+            boxRect.top < delRect.bottom && 
+            boxRect.bottom > delRect.top
+        ) {
+            if (iGrav) clearInterval(iGrav);
+            iGrav = null;
+
+            box.remove();
+            box = null;
+        };
+
+      }, 16);
+
+        localStorage.setItem("gravityOn", gravityOn);
+      }
+
+      function disableGravity() {
+        if (iGrav || iDel || box) {
+          clearInterval(iGrav);
+          iGrav = null;
+
+          clearInterval(iDel);
+          iDel = null;
+
+          box.remove();
+          box = null;
+        }
+
+        gravityOn = false;
+      }
+
+      function enableGravity() {
+        if (iGrav || iDel || box) {
+          clearInterval(iGrav);
+          iGrav = null;
+
+          clearInterval(iDel);
+          iDel = null;
+
+          box.remove();
+          box = null;
+        }
+
+        gravityOn = true;
+      }
+
+      document.addEventListener("mousemove", e => {
+
+        if (dragging && box) {
+
+          y = e.clientY;
+          x = e.clientX;
+
+          box.style.left = x + 'px';
+          box.style.top = y + 'px';
+        }
+      });
+
+      document.addEventListener("mouseup", e => {
+        dragging = false;
+      });
+
+      document.addEventListener("mousedown", e => {
+        if (e.target === box) dragging = true;
+      })
+    </script>
+  
+  </body>
+</html>

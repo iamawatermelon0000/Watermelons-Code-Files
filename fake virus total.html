@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Watermelon's Total</title>
+
+    <style>
+      #input_file {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        border: 2px solid black;
+
+        font-style: italic;
+        font-weight: bold;
+      }
+
+      #printResult {
+        display: flex;
+        justify-content: right;
+        gap: 50px;
+        border: 2px solid red;
+        font-weight: bold;
+      }
+
+      body {
+        background: black;
+        
+        color: lime;
+        font-family: 'Courier New', Courier, monospace;
+
+        display: flex;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      #btn {
+        width: 150px;
+        height: 75px;
+
+        color: red;
+
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        text-align: center;
+        font-size: 25px;
+      }
+
+      #disclaim {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+
+        color: white;
+
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+      }
+
+      #scanResult, #f {
+        font-size: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <div id="input_file">Select file here:
+      <input type="file" id="f">
+      <button id="btn" type="button" onclick="testFile()">Test File</button>
+      <p id="scanResult">Status: Error[Scan_Status_Inactive]</p>
+    </div>
+
+    <div id="printResult">View result here:
+
+      <p id="%malicious">Percentage of the file being malicious: ?%</p>
+      <p id="approvedBy">Approved by: ??/75 vendors</p>
+
+      <h2 id="finalResult">FINAL RESULT: Error[Scan_Inactive]</h2>
+    </div>
+
+    <h1 id="disclaim">Disclaimer: THIS IS NOT REAL. EVERYTHING IS RANDOMIZED. THIS PROGRAM DOES NOT PROVE IF THE SELECTED FILE/FOLDER IS REALLY MALICIOUS OR NOT.</h1>
+
+    <script>
+      function testFile() {
+        let prMalPer = document.getElementById("%malicious");
+        let prApprBy = document.getElementById("approvedBy");
+        let prResult = document.getElementById("scanResult");
+        let prFinal = document.getElementById("finalResult");
+
+        let f_value = document.getElementById("f").value;
+
+        if (!f_value) { f_value = "C:\\Windows\\System32"; }
+
+        let mal_percent = Math.floor(Math.random() * 100) + 1;
+        let appr_number = Math.floor(Math.random() * 75) + 1;
+        let time = Math.floor(Math.random() * 5000) + 1;
+
+        prResult.textContent = "Scanning...";
+
+        setTimeout(() => {
+          prResult.textContent = `Scanned ${f_value} for ${(time / 1000).toFixed(2)}s.`;
+          prApprBy.textContent = `Approved by: ${appr_number}/75 vendors.`;
+          prMalPer.textContent = `Percentage of the file being malicious: ${mal_percent}%`;
+
+          if (mal_percent >= 50) {
+            prFinal.textContent = "FINAL RESULT: MALICIOUS";
+          } else {
+            prFinal.textContent = "FINAL RESULT: SAFE";
+          }
+
+        }, time);
+      }
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <title>Nuclear Console</title>
+
+    <style>
+      #bomb {
+        display: flex;
+        justify-content: left;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      #country {
+        display: flex;
+        justify-content: right;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #effects {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      #forLaunching {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      body {
+        background: black;
+        color: lime;
+        font-family:'Courier New', Courier, monospace;
+        text-align: center;
+      }
+
+      button, option, input {
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-style: italic;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div id="bomb">Type of Nuclear Weapon:
+      <select id="selBomb">
+        <option>None</option>
+        <option>Atomic Bomb</option>
+        <option>Nuke</option>
+        <option>Tsa Bomba</option>
+      </select>
+
+      <button type="button" onclick="choose()">Confirm</button>
+      <p id="weapon">Selected:</p>
+      
+    </div>
+
+    <div id="country">To:
+      <input type="text" id="ctr" placeholder="Enter somewhere...">
+      
+      <button type="button" onclick="enter()">Confirm</button>
+      <p id="place">Entered:</p>
+      
+    </div>
+
+    <div id="forLaunching">
+
+    <button id="btn" type="button" onclick="launch()">Launch.</button>
+    <p id="narrate">[INFORMATIONS]</p>
+
+    </div>
+
+    <script>
+      let prBomb = document.getElementById("weapon");
+      let prPlace = document.getElementById("place");
+      let prInfo = document.getElementById("narrate");
+
+      const bombStats = {
+        atomic: {
+          radius: 500, // m
+          smoke: 250, // m
+          radiation: 94, // %
+          depth: 190 // m
+        },
+
+        nuke: {
+          radius: (500 * 1.5),
+          smoke: (250 * 0.9),
+          radiation: 98,
+          depth: 235
+        },
+
+        tsa_bomba: {
+          radius: Math.floor(500/1.2),
+          smoke: 300,
+          radiation: 100,
+          depth: 300
+        }
+      }
+      let useStatOf;
+      let countryData;
+      let selectedBomb;
+
+      function choose() {
+        let bomb = document.getElementById("selBomb").value;
+
+        if (bomb === "Atomic Bomb") useStatOf = bombStats.atomic;
+        if (bomb === "Nuke") useStatOf = bombStats.nuke;
+        if (bomb === "Tsa Bomba") useStatOf = bombStats.tsa_bomba;
+        selectedBomb = bomb;
+
+        prBomb.textContent = `Selected: ${bomb}`;
+      }
+
+      function enter() {
+        let ct = document.getElementById("ctr").value;
+        countryData = ct;
+
+        prPlace.textContent = `Entered: ${ct}`;
+      }
+
+      function launch() {
+
+        if (!useStatOf || !countryData || !selectedBomb) {
+            alert("An Error has orcurred. Please re-check your choices and try again.");
+            return;
+        }
+
+        prInfo.textContent = `You launched a ${selectedBomb} to ${countryData}.`
+
+          setTimeout(() => {
+            prInfo.textContent = `Statistic: [Radius: ${useStatOf.radius}m; Smoke Height: ${useStatOf.smoke}m; Radiation (percent): ${useStatOf.radiation}%; Created a crater with the depth of: ${useStatOf.depth}m].`
+          }, 2500);
+      }
+    </script>
+
+  </body>
+</html>

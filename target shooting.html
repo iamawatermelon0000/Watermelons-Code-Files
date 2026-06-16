@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <style>
+
+    #target {
+      width: 100px;
+      height: 100px;
+      background: red;
+      font-size: large;
+      position: absolute;
+      text-align: center;
+    }
+
+
+  </style>
+  <body>
+    <p id="point">0</p>
+
+      <div id="target">Target here</div>
+
+
+      <script>
+          let printPoint = document.getElementById("point");
+          let score = parseFloat(localStorage.getItem("score") || 0);
+
+          let tg = document.getElementById("target");
+
+          let x = 0, y = 0;
+
+          save();
+
+          window.addEventListener("load", () => {
+
+            printPoint.textContent = score;
+
+            reroll();
+            save();
+
+           tg.addEventListener("click", e => {
+
+            if (e.target === tg) {
+              score += 1;
+              printPoint.textContent = score;
+
+              reroll();
+              save();
+            
+            } else {
+              score -= 1;
+              printPoint.textContent = score;
+
+              reroll();
+              save();
+
+              if (score <= 0) {
+                alert("How did you even do this????");
+
+                score = 1;
+                printPoint.textContent = score;
+
+                reroll();
+                save();
+              }
+
+              if (score%10 === 0) {
+                    alert("THE BOSSFIGHT HAS BEGUN!")
+
+              tg.style.width = 50 + 'px';
+              tg.style.height = 50 + 'px';
+
+              printPoint.textContent = score;
+
+              reroll();
+              save()
+
+              setTimeout(() => {
+                  alert("YOU HAVE WON THE BOSSFIGHT!");
+
+              tg.style.width = 100 + 'px';
+              tg.style.height = 100 + 'px';    
+              
+              score += 2;
+              printPoint.textContent = score;
+
+              reroll();
+              save();
+              })
+
+            }                    
+              }
+           }, 15000)
+
+           printPoint.textContent = score;
+
+              reroll();
+              save();
+           });
+
+
+          function reroll() {
+
+            x = Math.floor(Math.random() * (window.innerWidth - 100));
+            y = Math.floor(Math.random() * (window.innerHeight - 100));
+
+            tg.style.top = y + 'px';
+            tg.style.left = x + 'px';
+
+          };
+
+          function save() {
+            localStorage.setItem("score", score);
+          }
+
+
+      </script>
+  </body>
+</html>

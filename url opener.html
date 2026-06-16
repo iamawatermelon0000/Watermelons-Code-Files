@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    body {
+      background: grey;
+      margin: 5px;
+    }
+
+    input {
+      font-weight: bold;
+      font-style: italic;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    #send{
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    #dele {
+        font-weight: bold;
+        font-style: italic;
+
+        position: fixed;
+        right: 0;
+        top: 0;
+    }
+  </style>
+  <body>
+    <h1>Play youtube videos / open URLs</h1>
+
+    <input type="text" id="inputURL" placeholder="Enter URL here...">
+
+    <button type="button" id="send" onclick="sendURL()">Send URL</button>
+    <button type="button" id="dele" onclick="delIframe()">Delete Playing Video</button>
+
+    <script>
+      let playVideo;
+
+      function sendURL() {
+      let url = document.getElementById("inputURL").value;
+
+      if (!url) return;
+
+      if (url.includes("watch?v=")) {
+        alert("Video not playing? Youtube blocked it, sorry.");
+          url = url.replace(/watch?v=/g, "embed/");
+
+          document.body.appendChild(playVideo);
+      } else if (!url.endsWith(".com")) {
+          url = `${url}.com`;
+
+          playVideo = document.createElement("iframe");
+
+          playVideo.src = url;
+          playVideo.style.width = 400 + 'px';
+          playVideo.style.height = 500 + 'px';
+      }
+      else  {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = `https://${url}`;
+        }
+          window.open(url);
+      }
+    };
+
+    function delIframe() {
+       if (playVideo) {
+          playVideo.remove();
+          playVideo = null;
+
+          return;
+       }
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") sendURL();
+    });
+    </script>
+  </body>
+</html>

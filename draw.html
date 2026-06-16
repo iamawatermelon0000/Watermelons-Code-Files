@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        #canv {
+            background: red;
+        }
+
+        #h1 {
+            text-align: center;
+            border: 2px solid green;
+            display: inline-block;
+        }
+    </style>
+    <body>
+        <h1 id="h1">Draw!</h1>
+        <canvas id="canv" height="500" width="1350"></canvas>
+        <button type="button" onclick="clearAll()">Clear everything</button>
+
+        <script>
+            let canva = document.getElementById("canv");
+            let context = canva.getContext("2d");
+
+            let drawing = false;
+            let click = 0;
+
+            let clrl = document.body;
+            
+            let lastX, lastY;
+
+            if (click === 0) drawing = false;
+
+            canva.onclick = () => {
+                drawing = true;
+                click += 1;
+
+                if (click > 1) {
+                    drawing = false;
+                    click = 0;
+                    return;
+                }
+            }
+        context.lineWidth = 4;
+        context.lineCap = "round";
+
+            canva.addEventListener("mousedown", e => {
+                drawing = true;
+                lastX = e.offsetX;
+                lastY = e.offsetY;
+            });
+
+            canva.addEventListener("mouseup", e => {
+                drawing = false;
+            });
+
+            canva.addEventListener("mouseleave", e => {
+                drawing = false;
+            })
+
+           canva.addEventListener("mousemove", e => {
+                if (!drawing) return;
+
+                context.beginPath();
+                context.moveTo(lastX, lastY);
+                context.lineTo(e.offsetX, e.offsetY);
+                context.stroke();
+
+                lastX = e.offsetX;
+                lastY = e.offsetY;
+    });
+
+            function clearAll() {
+                context.clearRect(0, 0, canva.width, canva.height);
+                drawing = false;
+            }
+        </script>
+    </body>

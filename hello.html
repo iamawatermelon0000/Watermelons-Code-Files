@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <div>
+        <p>Input your name below!</p>
+    <input type="text" id="name">
+    </div>
+
+    <div>
+        <p>Enter your abouts below!</p>
+        <input type="text" id="abouts">
+    </div>
+
+    <button type="button" onclick="hello()">Click me!!!</button>
+
+    <script>
+        function hello() {
+            let name = document.getElementById("name").value;
+            let about = document.getElementById("abouts").value;
+
+            console.log(`Hello ${name}! Your about is: ${about}. By looking at these I could tell you\'re really cool!`);
+        }
+
+        setTimeout(() => {
+            alert("thx for using btw");
+        }, 2500)
+    </script>
+</body>

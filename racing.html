@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    #player {
+      width: 50px;
+      height: 50px;
+      background: lime;
+      position: absolute;
+    }
+
+    #enemy {
+        width: 50px;
+        height: 50px;
+        background: red;
+        position: absolute;
+    }
+
+    #line {
+        background: brown;
+        position: fixed;
+        top: 0px;
+        right: 0px; 
+    }
+
+    #info {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+  </style>
+  <body>
+
+    <p id="printScore">0</p>
+
+    <div id="player">you</div>
+    <div id="line"></div>
+    <div id="enemy">!you</div>
+
+    <p id="info">Press WASD to move around, press SPACE to start.</p>
+
+    <script>
+      let player = document.getElementById("player");
+      let enemy = document.getElementById("enemy");
+
+      let line = document.getElementById("line");
+      line.style.width = 10 + 'px';
+      line.style.height = window.innerHeight + 'px';
+
+      let int;
+
+      let score = Number(localStorage.getItem("score") || 0);
+      let printScore = document.getElementById("printScore");
+
+      let x = 0, y = 50;
+
+      let ex = 0, ey = 500;
+      render();
+      printScore.textContent = score;
+
+      document.addEventListener("keydown", e => {
+          let pk = e.key.toLowerCase();
+
+          if (pk === " ") {
+            startGame();
+            return;
+          }
+
+          if (pk === "d") x += 10;
+          if (pk === "a") x -= 10;
+
+          if (pk === "w") y -= 10;
+          if (pk === "s") y += 10;
+
+          render();
+          save();
+      });
+
+      function startGame() {
+        reset();
+
+        int = setInterval(() => {
+        ex += 10;
+        render();
+
+        let playerRect = player.getBoundingClientRect();
+        let enemyRect = enemy.getBoundingClientRect();
+        let lineRect = line.getBoundingClientRect();  
+
+    if (
+            enemyRect.left < lineRect.right && 
+            enemyRect.right > lineRect.left &&
+            enemyRect.top < lineRect.bottom && 
+            enemyRect.bottom > lineRect.top
+        ) {
+            alert("You lost!");
+            reset();
+
+            score -= 1;
+        };
+
+    if (
+            playerRect.left < lineRect.right && 
+            playerRect.right > lineRect.left &&
+            playerRect.top < lineRect.bottom && 
+            playerRect.bottom > lineRect.top
+        ) {
+            alert("You won!");
+            reset();
+
+            score += 1;
+        }
+
+
+        save();
+          printScore.textContent = score;
+        }, 50);
+
+      }
+
+      function save() {
+        localStorage.setItem("score", score);
+      };
+
+      function reset() {
+        x = 0, y = 10;
+        ex = 0, ey = 500;
+
+        if (int) clearInterval(int);
+        int = null;
+        render();
+      }
+
+      function render() {
+        player.style.left = x + 'px';
+        player.style.top = y + 'px';
+        enemy.style.left = ex + 'px';
+        enemy.style.top = ey + 'px';
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <div>
+            <h1>Speak your inputted text!</h1>
+        </div>
+        
+        <input type="text" id="speakWhat"></input>
+        <button type="button" onclick="speak()">Click here to speak text</button>
+
+        <div>Select pitch:
+        <select id="pitch">
+            <option>None</option>
+            <option>0</option>
+            <option>1</option>
+            <option>2</option>
+        </select>
+        </div>
+
+        <div>Select language:
+            <select id="lang">
+                <option>None</option>
+                <option>Vie (Vietnamese)</option>
+                <option>Eng (English)</option>
+            </select>
+        </div>
+
+        <div>Select volume:
+            <select id="vol">
+                <option>None</option>
+                <option>0</option>
+                <option>1</option>
+            </select>
+        </div>
+
+        <div>Select speech rate:
+            <select id="rate">
+                <option>None</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+            </select>
+        </div>
+
+        <script>
+            let alerted = true;
+
+            function speak() {
+
+                if (alerted) {
+            alert("(i) Press F5 (reload) to stop");
+            alerted = false;
+        }
+        
+
+                /* MAIN */
+            let text = document.getElementById("speakWhat").value;
+            let speaktxt = new SpeechSynthesisUtterance(text);
+
+            /* INFORMATIONS */
+            let pitch = parseInt(document.getElementById("pitch").value);
+            let language = document.getElementById("lang").value;
+            let volume = parseInt(document.getElementById("vol").value);
+            let speakRate = parseInt(document.getElementById("rate").value);
+
+            /* MODULES */
+            if (language === "Vie (Vietnamese)") {
+                speaktxt.lang = "vi-VN";
+            } else {
+                speaktxt.lang = "en-US";
+            }
+            speaktxt.pitch = pitch;
+            speaktxt.volume = volume;
+            speaktxt.rate = speakRate;
+
+            /* SPEAK */
+
+            setTimeout(() => {
+            speechSynthesis.speak(speaktxt);
+
+            /* IF YOU RESET = IT STOPS */
+            }, 500);
+
+            document.addEventListener("keydown", e => {
+                if (e.key === "F5") {
+                    speechSynthesis.cancel();
+                }
+            });
+
+            if (text === null || speaktxt === null) {
+                speechSynthesis.cancel();
+            }
+
+            setTimeout(() => {
+                text = null;
+                speaktxt = null;
+            }, 1000);
+
+            }
+        </script>
+
+    </body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <div>
+            <button type="button" onclick="start()">
+                Start Timer
+            </button>
+
+            <button type="button" onclick="stop()">
+                Stop Timer
+            </button>
+
+            <button type="button" onclick="reset()">
+                Reset Timer
+            </button>
+        </div>
+
+        <p id="print">Current Timer: [== INACTIVE ==]</p>
+        <p id="print2">Current Status: [== OFFLINE ==]</p>
+
+        <script>
+            let interval;
+
+            let second = Number(localStorage.getItem("second") || 0);
+
+            let print = document.querySelector("#print");
+            let print2 = document.querySelector("#print2");
+
+            print.textContent = `Current Timer ${second}s.`;
+
+
+            function start() {
+                if (interval) {
+                    alert("You've already clicked start.");
+                    return;
+                }
+
+                interval = setInterval(() => {
+                    second++;
+                        print.textContent = `Timer: ${second}s.`;
+                        print2.textContent = 'Timer started.';
+
+                         localStorage.setItem("second", second);
+                }, 1000);
+            }
+
+            function stop() {
+                clearInterval(interval);
+                interval = null;
+
+                print2.textContent = 'Timer stopped.';
+
+                localStorage.setItem("second", second);
+                 print.textContent = `Timer: ${second}s.`;
+
+            }
+
+            function reset() {
+                clearInterval(interval);
+                second = 0;
+
+                 print2.textContent = 'Timer Resetted.';
+                    localStorage.setItem("second", second);
+
+                    print.textContent = `Timer: ${second}s.`;
+                interval = null;
+            }
+
+
+
+        </script>
+    </body>
+</html>

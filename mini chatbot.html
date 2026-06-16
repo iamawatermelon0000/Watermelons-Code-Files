@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    body {
+      margin: 5px;
+      background: darkgray;
+    }
+
+    input {
+      margin: 5px;
+      width: 250px;
+      font-style: italic;
+    }
+
+    #titleH1 {
+      text-align: center;
+
+      border: 4px solid black;
+
+      color: red;
+      font-family: 'Times New Roman', Times, serif;
+      font-style: italic;
+    }
+  </style>
+  <body>
+    <div>Current version: v2.1.12</div>
+    <div>Update logs (v2.1.12): Added welcome message; You can now press ENTER to send messages! Added commands: start, date.</div>
+                <h1 id="titleH1">Mini Chatbot!</h1>
+
+                <div>
+    <p id="user"></p>
+    <input type="text" id="inputUser" placeholder="Enter your account name here">
+                </div>
+
+                <div>
+    <input type="text" id="inputText" placeholder="Ask something..."> 
+    <button type="button" onclick="send()">Send message</button>
+                </div>
+
+    <p id="result"></p>
+
+    <script>
+      function send() {
+        let user = localStorage.getItem("user");
+        let account = document.getElementById("inputUser").value;
+        let acc = account.trim().toLowerCase();
+
+        let message = document.getElementById("inputText").value;
+        let mess = message.trim().toLowerCase();
+
+        let printRes = document.getElementById("result");
+        let printUs = document.getElementById("user");
+
+        if (acc === "" || message === "") return;
+
+        const devMessages = [
+          "(AI) Debuggin'?",
+          "(AI) Testin' out your creation?",
+          "(AI) Let's get started by pressing F12 > Console, dev.",
+          "(AI) Are you ready?"
+        ];
+        
+
+        if (acc === "iamawatermelon0000") {
+            do {
+          alert("Welcome, creator & developer!");
+
+          let randomDevMes = devMessages[Math.floor(Math.random() * devMessages.length)];
+          alert(randomDevMes);
+            } while (false);
+
+        } else {
+            do {
+          alert(`Welcome, ${acc}`);
+            } while(false)
+        }
+
+        if (mess.includes("hello")) {
+            printRes.textContent = `Hello! (Inputted message: ${message})`;
+        } else if (mess.includes("name")) {
+            printRes.textContent = `My name is BlueSky! (Inputted message: ${message})`;
+        } else if (mess.includes("how are you")) {
+            printRes.textContent = `I'm fine, thanks! (Inputted message: ${message})`;
+        } else if (mess.includes("execute") || mess.includes("executed")) {
+            printRes.textContent = `Do not mention that ever again.`;
+        } else if (mess.includes("best")) {
+            printRes.textContent = `I am the best! (Inputted message: ${message})`
+        } else if (mess.includes("date")) {
+            printRes.textContent = `The current date is: ${new Date().toLocaleDateString()} (Inputted message: ${message})`;
+        } else if (mess.includes("creator of")) {
+          printRes.textContent = `Meh... I don't believe you. (Inputted message: ${message})`;
+        } else if (mess.includes("creator") || mess.includes("creater")) {
+            printRes.textContent = `My creator is @iamawatermelon000 on discord! You can tell them which sentences to add! (Inputted message : ${message})`;
+        } else if (mess.includes("start")) {
+            printRes.textContent = `System started!`;
+        }
+        else {
+          alert("(i) It's still in development... Your command is not registered yet OR you entered an invalid command");
+          return;
+        }
+
+        printUs.textContent = `@${account}`;
+        
+       document.getElementById("inputText").value = "";
+      };
+
+      document.addEventListener("keydown", e => {
+          if (e.key === "Enter") send();
+      })
+    </script>
+  </body>
+</html>

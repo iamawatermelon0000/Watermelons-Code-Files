@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1> [== MEMORY GAMES!!!! ==]</h1>
+
+        <button type="button" onclick="st()">Arrow Puzzels</button>
+        <p id="st"></p>
+
+            <script>
+let combo = Number(localStorage.getItem("combo") || 0);
+
+let print = document.querySelector("#st");
+
+    let seq = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight"
+    ];
+
+    let key = [];
+    let index = 0;
+    let gameStarted = false;
+
+            function st() {
+    key = [];
+    index = 0;
+    gameStarted = true;
+
+    for (let i = 0; i < 3; i++) {
+        let random = Math.floor(Math.random() * seq.length);
+        key.push(seq[random]);
+    }
+
+    print.textContent = key.join(" → ");
+}
+
+        document.addEventListener("keydown", (e) => {
+    if (!gameStarted) return;
+
+    if (e.key === key[index]) {
+        index++;
+        print.textContent = "Correct step", index;
+
+        if (index === key.length) {
+            combo += 1;
+            print.textContent = "You won, Combo:", combo;
+            gameStarted = false;
+
+            localStorage.setItem("combo", combo);
+        }
+
+    } else {
+        combo = 0;
+        print.textContent = "Incorrect! Combo reset";
+        gameStarted = false;
+
+        localStorage.setItem("combo", combo);
+        }
+    });
+        // im here to block the forbidden number
+        </script>
+        </body>
+        </html>
+
+
+        <!-- 676767676767 -->

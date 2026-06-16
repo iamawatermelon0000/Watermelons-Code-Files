@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shooting Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, #283d69 0%, #101726 45%, #06090f 100%);
+      color: #fff;
+    }
+
+    #hud {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 20;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(6px);
+    }
+
+    #arena {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      cursor: crosshair;
+    }
+
+    #player {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8cff66, #2ca52c);
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    #gun {
+      position: absolute;
+      width: 48px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #d0b083, #8c6339);
+      transform-origin: 8px 50%;
+      pointer-events: none;
+    }
+
+    #enemy {
+      position: absolute;
+      width: 58px;
+      height: 58px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ff6a6a, #b80e0e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      user-select: none;
+      box-shadow: 0 0 24px rgba(255, 65, 65, 0.35);
+    }
+
+    .bullet {
+      position: absolute;
+      width: 14px;
+      height: 6px;
+      border-radius: 999px;
+      background: #ffd166;
+      box-shadow: 0 0 12px rgba(255, 209, 102, 0.7);
+      pointer-events: none;
+    }
+
+    #hint {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div>Score: <span id="score">0</span></div>
+    <div>Best: <span id="best">0</span></div>
+  </div>
+
+  <div id="arena">
+    <div id="player">YOU</div>
+    <div id="gun"></div>
+    <div id="enemy">BOT</div>
+  </div>
+
+  <div id="hint">Move: W A S D or arrow keys | Shoot: click or F</div>
+
+  <script>
+
+            alert("MADE BY CODEX")
+
+    const arena = document.getElementById("arena");
+    const player = document.getElementById("player");
+    const gun = document.getElementById("gun");
+    const enemy = document.getElementById("enemy");
+    const scoreEl = document.getElementById("score");
+    const bestEl = document.getElementById("best");
+
+    const playerSize = 56;
+    const enemySize = 58;
+    const bulletSpeed = 12;
+    const moveSpeed = 12;
+
+    let playerX = 80;
+    let playerY = window.innerHeight / 2 - playerSize / 2;
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let score = Number(localStorage.getItem("shootingScore") || 0);
+    let bestScore = Number(localStorage.getItem("shootingBest") || 0);
+
+    scoreEl.textContent = score;
+    bestEl.textContent = bestScore;
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function updatePlayer() {
+      player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
+
+      const centerX = playerX + playerSize / 2;
+      const centerY = playerY + playerSize / 2;
+      const angle = Math.atan2(mouseY - centerY, mouseX - centerX) * 180 / Math.PI;
+
+      gun.style.left = centerX - 4 + "px";
+      gun.style.top = centerY - 5 + "px";
+      gun.style.transform = "rotate(" + angle + "deg)";
+    }
+
+    function moveEnemy() {
+      const maxX = window.innerWidth - enemySize - 12;
+      const maxY = window.innerHeight - enemySize - 12;
+      const minX = Math.max(window.innerWidth * 0.45, 180);
+
+      enemy.style.left = Math.floor(minX + Math.random() * Math.max(1, maxX - minX)) + "px";
+      enemy.style.top = Math.floor(12 + Math.random() * Math.max(1, maxY - 12)) + "px";
+    }
+
+    function saveScore() {
+      localStorage.setItem("shootingScore", String(score));
+      localStorage.setItem("shootingBest", String(bestScore));
+    }
+
+    function registerHit() {
+      score += 1;
+      bestScore = Math.max(bestScore, score);
+      scoreEl.textContent = score;
+      bestEl.textContent = bestScore;
+      saveScore();
+      moveEnemy();
+    }
+
+    function shootBullet() {
+      const bullet = document.createElement("div");
+      bullet.className = "bullet";
+      arena.appendChild(bullet);
+
+      const centerX = playerX + playerSize / 2;
+      const centerY = playerY + playerSize / 2;
+      const dx = mouseX - centerX;
+      const dy = mouseY - centerY;
+      const length = Math.hypot(dx, dy) || 1;
+      const vx = dx / length;
+      const vy = dy / length;
+      const angle = Math.atan2(vy, vx) * 180 / Math.PI;
+
+      let bulletX = centerX + vx * 34;
+      let bulletY = centerY + vy * 34;
+
+      bullet.style.left = bulletX + "px";
+      bullet.style.top = bulletY + "px";
+      bullet.style.transform = "rotate(" + angle + "deg)";
+
+      const bulletTimer = setInterval(() => {
+        bulletX += vx * bulletSpeed;
+        bulletY += vy * bulletSpeed;
+        bullet.style.left = bulletX + "px";
+        bullet.style.top = bulletY + "px";
+
+        const bulletRect = bullet.getBoundingClientRect();
+        const enemyRect = enemy.getBoundingClientRect();
+
+        if (
+          bulletRect.left < enemyRect.right &&
+          bulletRect.right > enemyRect.left &&
+          bulletRect.top < enemyRect.bottom &&
+          bulletRect.bottom > enemyRect.top
+        ) {
+          clearInterval(bulletTimer);
+          bullet.remove();
+          registerHit();
+          return;
+        }
+
+        const outOfBounds =
+          bulletX < -30 ||
+          bulletY < -30 ||
+          bulletX > window.innerWidth + 30 ||
+          bulletY > window.innerHeight + 30;
+
+        if (outOfBounds) {
+          clearInterval(bulletTimer);
+          bullet.remove();
+        }
+      }, 16);
+    }
+
+    document.addEventListener("mousemove", (event) => {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+      updatePlayer();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+
+      if (key === "w" || key === "arrowup") playerY -= moveSpeed;
+      if (key === "s" || key === "arrowdown") playerY += moveSpeed;
+      if (key === "a" || key === "arrowleft") playerX -= moveSpeed;
+      if (key === "d" || key === "arrowright") playerX += moveSpeed;
+
+      playerX = clamp(playerX, 0, window.innerWidth - playerSize);
+      playerY = clamp(playerY, 0, window.innerHeight - playerSize);
+      updatePlayer();
+
+      if (key === "f") shootBullet();
+    });
+
+    arena.addEventListener("click", shootBullet);
+
+    window.addEventListener("resize", () => {
+      playerX = clamp(playerX, 0, window.innerWidth - playerSize);
+      playerY = clamp(playerY, 0, window.innerHeight - playerSize);
+      updatePlayer();
+      moveEnemy();
+    });
+
+    updatePlayer();
+    moveEnemy();
+  </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stress-Tester</title>
+
+    <style>
+      .text {
+        font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        font-style: italic;
+        font-weight: bold;
+        background: linear-gradient(to right, white, grey, darkgrey, black)
+      }
+
+      body {
+        background: linear-gradient(to right, blue, cyan, violet, purple)
+      }
+
+      #forcestop {
+        position: grid;
+        justify-content: center;
+      }
+    </style>
+
+    <script defer>
+
+      let int;
+      let int2;
+      let int3;
+      let int4;
+      let text;
+
+      document.addEventListener("keydown", e => {
+        if (e.key === "r" || e.key === "R") window.location.href = "stress test.html"
+      })
+
+        function loops() {
+          alert("ACTIVE.")
+          int = setInterval(() => {
+                console.log("Enternal loop id ACTIVE");
+          }, 5);
+
+          setTimeout(() => {
+          alert("Nothing's happening? Well, it's probably because you have 'Group Similar Messages' on in the console. Lucky you")
+          }, 5000);
+        }
+
+        function alerts() {
+            int2 = setInterval(() => {
+                alert("Alerting (ts the lightest in the 4)");
+            }, 5)
+        }
+
+        function tabs() {
+            int3 = setInterval(() => {
+                window.open("about:blank");
+            }, 5)
+        }
+
+        function texts() {
+            in4 = setInterval(() => {
+              
+              text = document.createElement("p");
+              text.textContent = "Running";
+              document.body.appendChild(text);
+
+              document.body.innerHTML += text;
+            }, 5)
+        }
+    </script>
+  </head>
+  <body>
+    <h1 class="text">Stress-Test your PC!</h1>
+    <h2 class="text">Warning: This can cause EXTREME lag/ heating.</h2>
+    <h2 class="text">Note: Close this tab (browser if you've clicked on the RAM annihilator) / press R to stop.</h2>
+
+    <div>Options:
+      <button type="button" onclick="loops()">Extreme loops of death</button>
+      <button type="button" onclick="alerts()">Pop-ups of doom</button>
+      <button type="button" onclick="tabs()">R.A.M annihilator</button>
+      <button type="button" onclick="texts()">Overflowing-text</button>
+    </div>
+
+  </body>
+</html>

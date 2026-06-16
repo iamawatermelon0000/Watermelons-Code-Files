@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <button type="button" onclick="download()">Download here</button>
+
+    <script>
+      function download() {
+          let a = document.createElement("a");
+          a.href = "app.exe";
+          a.download = "app.exe";
+
+          document.body.appendChild(a);
+
+          a.click();
+      }
+    </script>
+  </body>
+</html>

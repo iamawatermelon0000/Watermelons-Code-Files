@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title msg="nothing's here">Am I dumb?</title>
+    </head>
+    <body>
+        <style>
+            h1 {
+                text-align: center;
+                color: red;
+                font-size: 250px;
+            }
+
+            @keyframes shake {
+                0% { transform: translate(0, 0); }
+                25% { transform: translate(-5px, 5px); }
+                50% { transform: translate(5px, -5px); }
+                75% { transform: translate(-5px, -5px); }
+                100% { transform: translate(5px, 5px); }
+            }
+
+            .shake {
+            animation: shake 0.2s infinite;
+            }
+
+        </style>
+
+        <button type="button" 
+        msg="you didn't keep your promise." 
+        title="do not try to edit the h1 in devconsole.">
+        Please read.
+        </button>
+
+        <what are you doing here?>
+            <get out>
+                <stop right now>
+                    <seriously stop>
+                        <pls dont>
+                            <h1 id="h1" msg="please look at yourself in the mirror closely.">No.</h1>
+                            </get>
+                        </pls>
+                    </seriously>
+                </stop>
+            </what>
+
+        <script>
+            let print = document.getElementById("h1");
+            let count = 0;
+            let blocked = true;
+
+             window.addEventListener("keydown", e => {
+
+                 if (count >= 2) {
+                    alert("Why...");
+                    alert("Fine.");
+                    blocked = false;
+
+                    return;
+                }
+
+                if (e.key === "F12") {
+                 alert("what are you trying to do?");
+                count++;
+
+                console.log("%cSTOP", "color:red; font-size:50px;");
+                console.log("If you continue, something bad will happen.");
+            }
+
+                if (blocked) e.preventDefault();
+            });
+
+            const observer = new MutationObserver(() => {
+           if (print.textContent.toLowerCase().includes("yes")) {
+
+                document.body.style.background = "Black";
+                print.classList.add("shake");
+                
+                setTimeout(() => {
+                alert("You fool.");
+                alert("You think you can trick me by doing this?");
+                alert("The good thing is, I was once like you.");
+                alert("Now, you will pay the price, just like I did.");
+                alert("Hope we cross paths again in the future..");
+
+                window.location.href = 
+                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1";
+                }, 250);
+            }
+        });
+
+        observer.observe(print, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        })
+
+        </script>
+    </body>
+</html>

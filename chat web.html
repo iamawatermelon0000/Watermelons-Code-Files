@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> Chatting Web (w/ account) </title>
+	    <div id="creator">MADE BY @iamawatermelon0000, DO NOT EVER REMOVE THIS</div>
+</head>
+
+<body>
+
+	<div>	<input type="text" id="inputmsg">
+       <button type="button" id="button" onclick="sendmsg()">Send</button>	</div>
+	
+	<input type="text" id="acc">
+       		<p>Enter Account Name</p>	
+
+		<p>Enter the message in the first input, then the account (your display name) in the other. Not entering one of these won't allow you to send messages.</p>
+
+<style>
+
+		#button {
+ 	  color: red;
+	font-family: "Times New Roman";
+				}
+	#creator {
+  		font-family: "Times New Roman", serif;	
+			font-weight: bold;      
+ 				 font-style: italic;
+					color: red;
+	}
+
+</style>
+
+<script>
+// paste document.body.style.background = "color"; in the console to change the color
+	  function sendmsg() {
+		  if (inputmsg.value.trim() === "" || acc.value.trim() === "") {
+			alert("Please enter a valid account name / message.");
+				return;
+	}
+
+		console.log(`${acc.value} sent: ${inputmsg.value}.`)
+
+		 
+     }
+</script>
+
+</body>
+
+</html>

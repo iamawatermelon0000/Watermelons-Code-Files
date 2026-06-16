@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div>
+<button type="button" onclick="stop()">Click me to stop the terminal</button>
+<button type="button" onclick="actv()">Click me to activate the terminal</button>
+</div>
+
+<p id="hacker"></p>
+
+<script>
+
+    let randomDig;
+
+    function actv() {
+document.body.style.backgroundColor = "black";
+let hacker = document.getElementById("hacker");
+
+    randomDig = setInterval(() => {
+  hacker.textContent += "101010101010101010010100110101010\n";
+}, 200)
+
+    }
+
+        function stop() {
+            clearInterval(randomDig);
+            alert("(i) The terminal has been stopped, but the apperence is still going to be there.")
+        }
+
+</script>
+<style>
+
+#hacker {
+  color: lime;
+  font-family: "Monospace", serif;
+  font-weight: bold;
+}
+
+</style>
+</body>
+</html>

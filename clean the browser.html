@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title msg="no" title="hi">Clean Te Browser</title>
+
+    <style>
+      #cleaner {
+        width: 50px;
+        height: 50px;
+        position: absolute;
+        background: linear-gradient(to right, blue, cyan, violet, purple);
+        text-align: center;
+      }
+
+      #waste {
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        background: linear-gradient(to right, brown, black);
+        color: red;
+      }
+
+      #trash {
+          width: 50px;
+          height: 50px;
+          position: absolute;
+          background: black;
+          color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="cleaner">(u)</div>
+
+    <div id="waste">pile of ditr</div>
+    <div id="trash">trahs</div>
+
+    <script defer>
+
+      document.addEventListener("DOMContentLoaded", () => {
+          spawn();
+          check(); 
+      });
+
+      let player = document.getElementById("cleaner");
+
+      let garb = document.getElementById("waste");
+      let trsh = document.getElementById("trash");
+
+      let x = 0, y = 0;
+
+      let posX = 0, posY = 0;
+      let garX = 0, garY = 0;
+
+      let int;
+
+      document.addEventListener("keydown", e => {
+          if (e.key === "w" || e.key === "ArrowUp") y -= 10;
+          if (e.key === "s" || e.key === "ArrowDown") y += 10;
+          
+          if (e.key === "d" || e.key === "ArrowRight") x += 10;
+          if (e.key === "a" || e.key === "ArrowLeft") x -= 10;
+
+          player.style.top = `${y}px`;
+          player.style.left = `${x}px`;
+      })
+
+      function spawn() {
+          posX = Math.floor(Math.random() * (window.innerWidth / 2));
+          posY = Math.floor(Math.random() * (window.innerHeight / 2));
+
+          garX = posX + Math.floor(Math.random() * 250) + 1;
+          garY = posY + Math.floor(Math.random() * 250) + 1;
+
+          garb.style.top = `${garY}px`;
+          garb.style.left = `${garX}px`;
+
+          trsh.style.top = `${posX}px`;
+          trsh.style.left = `${posY}px`;
+      }
+
+      function rerollTrash() {
+          posX = Math.floor(Math.random() * (window.innerWidth / 2));
+          posY = Math.floor(Math.random() * (window.innerHeight / 2));
+
+          trsh.style.top = `${posX}px`;
+          trsh.style.left = `${posY}px`;
+      }
+
+      function rerollGarbage() {
+          garX = posX + Math.floor(Math.random() * 250) + 1;
+          garY = posY + Math.floor(Math.random() * 250) + 1;
+          
+          garb.style.top = `${garY}px`;
+          garb.style.left = `${garX}px`;
+      }
+
+      function check() {
+          spawn();
+
+          int = setInterval(() => {
+              let trshRect = trsh.getBoundingClientRect();
+              let garbRect = garb.getBoundingClientRect();
+              let plyrRect = player.getBoundingClientRect();
+
+              if (plyrRect.left < trshRect.right && 
+                  plyrRect.right > trshRect.left &&
+                  plyrRect.top < trshRect.bottom &&
+                  plyrRect.bottom > trshRect.top) {
+                      rerollTrash();
+                  }
+
+              if (plyrRect.left < garbRect.right && 
+                  plyrRect.right > garbRect.left &&
+                  plyrRect.top < garbRect.bottom &&
+                  plyrRect.bottom > garbRect.top) {
+                      rerollGarbage();
+                  }
+          }, 16)
+      }
+    </script>
+  </body>
+</html>

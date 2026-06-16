@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+  
+<html>
+  
+<head>
+  
+<title id="title">ODD/EVEN GUESSER</title>
+  
+</head>
+  
+
+  
+<body>
+  
+ <div> <input type="number" id="input"> </div>
+  
+ 
+  
+     <button type="button" onclick="guessOddEven()">Click me already</button>
+
+     <p>Enter a number in the input and it'll say that number is odd or even</p>
+  
+    
+  
+    <script>
+  
+      function guessOddEven() {
+  
+      alert("Make sure its a number");
+  
+         let v = Number(document.getElementById("input").value);
+  
+            if (isNaN(v)) {
+  
+             console.log("Please enter a number");
+  
+                return;
+  
+             }
+  
+             
+  
+       if (v % 2 === 0) {
+  
+          console.log("Even");
+  
+          } else {
+  
+        console.log("Odd")
+  
+        }
+        input.value = "";
+  
+   }
+  
+ </script>
+  
+   
+  
+    
+  
+</body>
+  
+
+  
+</html>

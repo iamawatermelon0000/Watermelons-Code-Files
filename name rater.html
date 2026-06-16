@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <p>Input your username below and we'll rate it out of 10!</p>
+<input type="text" id="inputName">
+<button type="button" onclick="checkName()">Rate your name</button>
+
+<p id="score"></p>
+
+        <script>
+            function checkName() {
+                let name = document.getElementById("inputName").value;
+                let rting = 0;
+                inputName.value = "";
+
+                if (name === "") {
+                    alert("please enter a valid name");
+                    inputName.value = ""; 
+                        return;
+                }
+
+                if (/[a-z]/.test(name)) {
+                        alert("prtty standard (Contains lowercase letters)")
+                        rting += 2;
+                }
+
+                if (/[A-Z]/.test(name)) {
+                    alert("still prtty standard (Contains uppercase letters)")
+                    rting += 2;
+                }
+
+                if (/[1234567890]/.test(name)) {
+                    rting += 2;
+                    alert("Your real name shouldn\'t have numbers in it though (Contains numbers)");
+                }
+
+                if (/[^A-Za-z0-9]/.test(name)) {
+                    rting += 2;
+                    alert("Wow (Contains special characters)");
+                }
+
+                if (name.length >= 10) {
+                        rting += 2;
+                        alert("prtty long name (10 or more characters)")
+                 }
+                 document.getElementById("score").textContent = `Your name is ${name}, your total score is ${rting} / 10`
+            }
+        </script>
+
+    </body>
+</html>

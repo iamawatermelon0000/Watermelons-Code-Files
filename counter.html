@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <body>
+
+    <div><button type="button" onclick="addClicks()">Add Click</button>
+         <button type="button" onclick="subClicks()">Subtract Click</button>
+         <button type="button" onclick="clearClicks()">Clear</button>
+    </div>
+
+    <div>
+    <button type="button" onclick="buyAutoClicker()">Start Auto Clicker (clicks must be more than 50)</button>
+    <button type="button" onclick="stopAutoClicker()">Click me to stop autoclicker</button>
+        <p id="print"></p>
+    </div>
+
+
+    <script>
+        let autoclick;
+        let count = Number(localStorage.getItem("count")) || 0; // khoi tao localStorage
+        document.getElementById("print").textContent = `Clicks: ${count}`;
+
+        const achievements = [
+            "Congrats on the milestone!",
+            "Keep going!",
+            "Congrats man!",
+            "You've done a great job!",
+            "Wow! That's impressive!"
+        ]
+
+        function addClicks() { // them click
+            ++count;
+            localStorage.setItem("count", count);
+
+            document.getElementById("print").textContent = `Clicks: ${count}`;
+
+            if (count%10 === 0) { // in achievement
+                document.querySelector("#print").textContent = `${achievements[Math.floor(Math.random() * achievements.length)]}, clicks: ${count}`;
+            }
+        }
+
+        function subClicks() { // tru click
+            --count;
+             localStorage.setItem("count", count);
+
+            if (count < 0) {
+                alert("Clicks cannot be below 0!");
+                count = Math.floor(Math.random() * 5) + 1;
+            }
+
+             document.getElementById("print").textContent = `Clicks: ${count}`;
+        }
+
+        function clearClicks() { // clear click
+            count = 0;
+             localStorage.setItem("count", count);
+
+             document.getElementById("print").textContent = `Clicks: ${count}`;
+        }
+
+       function buyAutoClicker() { // hack1000
+
+    if (count >= 50) {
+
+        alert("(i) You've started the autoclicker.");
+
+       autoclick = setInterval(() => {
+            count++;
+            localStorage.setItem("count", count);
+
+            document.getElementById("print").textContent = `Clicks: ${count}`;
+        }, 1000);
+
+        if (count%10 === 0) {
+                document.querySelector("#print").textContent = `${achievements[Math.floor(Math.random() * achievements.length)]}, clicks: ${count}`;
+            }
+
+    } else {
+        alert("(i) Not enough clicks!");
+    }
+
+}
+
+        function stopAutoClicker() { // ngung autoclick
+            clearInterval(autoclick);
+        }
+
+    </script>
+
+    </body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Page_Not_Ready</title>
+
+    <style>
+      #bar {
+        background: linear-gradient(to right, red, blue, lime);
+        width: 0px;
+        height: 50px;
+        border: 2px solid black;
+      }
+
+      body {
+        font-family: 'Courier New', Courier, monospace;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        gap: 50px;
+        font-weight: bold;
+        font-style: italic;
+        text-align: center;
+        background: black;
+        color: lime;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Loading /HTML_File.html/...</h2>
+
+    <div id="bar"></div>
+    <h2 id="prog">0% Complete</h2>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+
+        let br = document.getElementById("bar");
+        let pr = document.getElementById("prog");
+
+        let prog = 0;
+        let w = 0;
+
+        let int = setInterval(() => {
+
+          prog++;
+          pr.textContent = `${prog}% Complete`;
+
+          w += 13.4;
+          br.style.width = w + 'px';
+
+          if (prog >= 100) {
+            clearInterval(int);
+            document.title = "Page loaded!";
+
+            setTimeout(() => {
+              alert("ALERT: AN ERROR HAS OCCURRED. CHANGING DIRECTORY...")
+              window.location.href = "about:blank";
+            }, 2500);
+          }
+        }, 500);
+
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1>Gambling Simulator</h1>
+        
+        <div>
+        <button type="button" onclick="start777()">1. The 777</button>
+            <p id="777"></p>
+
+        </div>
+
+        <div>
+            <button type="button" onclick="startLott()">2. Lottery</button>
+            <p id="lott"></p>
+        </div>
+
+        <div>
+            <button type="button" onclick="stock()">3. The Stock Market</button>
+            <p id="stock"></p>
+        </div>
+
+        <script>
+            function start777() {
+                let num1 = Math.floor(Math.random() * 9) + 1;
+                let num2 = Math.floor(Math.random() * 9) + 1;
+                let num3 = Math.floor(Math.random() * 9) + 1;
+
+                document.getElementById("777").textContent = `${num1} | ${num2} | ${num3}`;
+
+                if (num1 === num2 === num3) alert(`WOW! Your number is: ${num1} | ${num2} | ${num3}! That's impressive!`);
+
+                if (num1 === num2 === num3 === 7) {
+                    document.getElementById("777").textContent = `You won the 777 PRIZE with: ${num1} | ${num2} | ${num3}!`;
+                }
+            }
+
+            function startLott() {
+                let lottNum = Math.floor(Math.random() * (99999 - 10000 + 1)) + 10000;
+                let urNum = Math.floor(Math.random() * (99999 - 10000 + 1)) + 10000;
+                
+                alert(`Your ticket number is: ${urNum}.`)
+
+                document.getElementById("lott").textContent = `The winning number was: ${lottNum}`;
+
+                if (urNum === lottNum) alert(`You won the price of 10M!!!`);
+            }
+
+            function stock() {
+                let combo = 5;
+
+                let status = [
+                    'It went up!',
+                    'It went down!',
+                ];
+
+                document.getElementById("stock").textContent = status[Math.floor(Math.random() * status.length)];
+
+                if (status === 'It went up!') {
+                    combo++;
+
+                    if (combo >= 5) {
+                        alert('You broke the stock market!');
+                    }
+                } else {
+                    combo--;
+
+                    if (combo < 0) {
+                        alert('You\'re unlucky!');
+                    }
+                }
+
+            }
+
+
+        </script>
+    </body>
+</html>

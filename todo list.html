@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    button {
+      margin: 5px;
+      font-family: 'Courier New', Courier, monospace;
+      width: 100px;
+      height: 25px;
+      border: 2px solid black;
+      display: inline-block;
+    }
+
+    input {
+      width:250px;
+      height: 75px;
+      font-style: italic;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    body {
+      margin: 10px;
+      background: grey;
+    }
+
+    div {
+      margin: 5px;
+      color: red;
+      font-family:'Times New Roman', Times, serif;
+      font-style: italic;
+    }
+    
+  </style>
+  <body>
+    <input type="text" placeholder="What are you going to do?" id="doWhat"> <div>(Press ENTER to send task)</div>
+
+    <div>
+    <button type="button" onclick="clearTask()">Clear Task</button>
+    </div>
+
+    <ul id="tl"></ul>
+
+  <script>
+    document.addEventListener("keydown", e => {
+
+        if (e.key === "Enter") {
+
+        let task = document.getElementById("doWhat").value;
+        let taskL = document.getElementById("tl");
+
+        if (task.trim().toLowerCase() === "") return;
+
+        let list = document.createElement("li");
+
+        list.onclick = () => {
+          let edit = prompt("Edit:", list.textContent);
+
+          if (edit !== null && edit.trim() !== "") {
+            list.textContent = edit;
+          }
+        };
+
+        list.textContent = task;
+        taskL.appendChild(list);
+
+        document.getElementById("doWhat").value = "";
+
+        }
+    });
+
+      function clearTask() {
+        let ask = confirm("Are you sure? This action will remove everything in your task list and cannot be reversed.");
+
+        if (ask) {
+          document.getElementById("tl").innerHTML = "";
+        }
+      }
+    </script>
+  </body>
+</html>

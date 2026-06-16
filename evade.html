@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        #square {
+            position: absolute;
+
+            width: 25px;
+            height: 25px;
+
+            background: limegreen;
+            border: 2px solid black;
+
+            display: inline-block;
+        }
+
+        .part {
+            position: absolute;
+
+            width: 350px;
+            height: 150px;
+
+            background: red;
+            border: 4px solid black;
+        }
+    </style>
+    <body>
+        <div>Enjoy!</div>
+        <div id="square"></div>
+        <div class="part"></div>
+        <div class="part"></div>
+
+        <script>
+            let player = document.getElementById("square");
+            let enemies = document.querySelectorAll(".part");
+
+            let x = 0, y = 0;
+
+            document.addEventListener("keydown", e => {
+                if (e.key === "w") y -= 10;
+                if (e.key === "s") y += 10;
+                if (e.key === "a") x -= 10;
+                if (e.key === "d") x += 10;
+
+                player.style.top = y + 'px';
+                player.style.left = x + 'px';
+            });
+
+            function spawn(enemy) {
+                let posY = Math.random() * (window.innerHeight - 150);
+                let posX = 1024;
+
+                enemy.style.top = posY + 'px';
+                enemy.style.left = posX + 'px';
+
+                setInterval(() => {
+                    posX -= 50;
+                    enemy.style.left = posX + 'px';
+
+                    let playerRect = player.getBoundingClientRect();
+                    let enemyRect = enemy.getBoundingClientRect();
+
+                    if (posX < -350) {
+                        posY = Math.random() * (window.innerHeight - 150);
+                        posX = 1024;
+
+                        enemy.style.top = posY + 'px';
+                        enemy.style.left = posX + 'px';
+                    }
+
+                    if (
+                        playerRect.left < enemyRect.right &&
+                        playerRect.right > enemyRect.left &&
+                        playerRect.top < enemyRect.bottom &&
+                        playerRect.bottom > enemyRect.top
+                    ) {
+                        alert("You lost!");
+                        location.reload();
+                        spawn(enemy);
+                    }
+
+                }, 250);
+            }
+
+                enemies.forEach(e => spawn(e));
+            </script>
+    </body>
+</html>

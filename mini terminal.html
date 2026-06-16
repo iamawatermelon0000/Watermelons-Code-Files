@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mini terminal</title>
+</head>
+
+    <style>
+        #idp {
+            font-family: "Times New Roman", serif;
+                       font-weight: bold;
+
+        }
+        #idpb {
+            font-family: "Times New Roman", serif;
+                       font-weight: bold;
+
+        }
+        #cmd {
+            font-style: italic;
+            background: white;
+
+        }
+        body {
+            background: rgb(37, 37, 37);
+            color: lime;
+        }
+    </style>
+
+<body>
+
+    <input type="text" id="cmd" placeholder="Enter command here">
+
+    <p id="idp">Avaiable commands: help, about, clear, print h, print t, open, edit</p>
+    <p id="idpb">Type help to see what commands do. Do NOT input the commands that  not on the list above.</p>
+
+    <div>Command Buttons:
+    <button type="button" onclick="sendCommand()">Click me to send commands</button>
+    <button type="button" onclick="clearTerminal()">Click the to clear / reset the terminal</button>
+    </div>
+
+    <p id="printAll"></p>
+
+    <script>
+
+        let detReload = performance.getEntriesByType("navigation")[0].type;
+        if (detReload === "reload") console.warn("Page reloaded. (FOR DEVS)");
+
+        let alerted = true;
+
+        function sendCommand() {
+
+            let printAll = document.getElementById("printAll");
+            printAll.style.textAlign = 'center';
+
+            let cmds = document.getElementById("cmd");
+
+            if (cmds.value.trim().toLowerCase() === "help") {
+                printAll.textContent = `COMMAND ENTERED: ${cmds.value}; 
+                            COMMAND LIST:
+                            help: send this;
+                            about: send the about of the code;
+                            clear: clear the console;
+                            print h: print out "Hello World";
+                            hack: ???;
+                            open: opens the entered URL;
+                            print t: print text;
+                            edit: edit "hello world" (styles);
+                            `;
+                                cmds.value = "";
+                    return;
+
+            } else if (cmds.value.trim().toLowerCase() === "about") {
+                    printAll.textContent = "This program is made by @iamawatermelon00000 on Discord, please report bugs via DMs (Direct Messages).";
+                            cmds.value = "";
+                        return;
+
+            } else if (cmds.value.trim().toLowerCase() === "clear") {
+                if (printAll) printAll.textContent = "";
+
+                    alert("(i) Cleared.");
+                        cmds.value = "";
+
+            } else if (cmds.value.trim().toLowerCase() === "print h") {
+                printAll.textContent = "Printed: Hello World";
+                    cmds.value = "";
+                        return;
+
+             } else if (cmds.value.trim().toLowerCase() === "hack") {
+                console.clear();
+             printAll.textContent = "Accessing....";
+
+        setTimeout(() => {
+            printAll.textContent = "Decoding sYsTeM.exe...";
+        }, 2000);
+
+        setTimeout(() => {
+            printAll.textContent = "Decoding Firewall...";
+        }, 4000);
+
+        setTimeout(() => {
+           printAll.textContent = "System Accessed.";
+            document.body.style.backgroundColor = "lime";
+        }, 5000);
+
+        setTimeout(() => {
+            document.body.style.backgroundColor = "red";
+            printAll.textContent = "ERROR 404: TERMINAL FAILING.";
+        }, 7500)
+
+        setTimeout(() => {
+            document.body.style.backgroundColor = "white";
+            console.clear();
+            alert("(i) Terminal is back to normal.");
+        }, 10000);
+                cmds.value = "";
+    }
+
+    else if (cmds.value.trim().toLowerCase() === "open") {
+
+        alert("(i) Currently only works with .com URLs!!!");
+
+        let url = prompt("Please enter the url you wanna open");
+
+        if (!url) return;
+        if (!url.startsWith("https://") && !url.endsWith(".com")) url = `https://${url}.com`;
+
+        let options = confirm("You wanna open another tab (Yes) or replace this page with the url (Cancel / No)?");
+
+        if (options) window.open(url);
+        if (!options) window.location.href = url;
+    }
+
+    else if (cmds.value.trim().toLowerCase() === "print t") {
+        let printText = prompt("Please enter the text that you wanna print")
+
+        if (!printText) return;
+
+        printAll.textContent = "Proccessing...";
+
+        setTimeout(() => {
+        printAll.textContent = printText;
+
+        }, 2000);
+    }
+    else if (cmds.value.trim().toLowerCase() === "devlogs") {
+
+        if (alerted) {
+            alert("(i) Welcome, developer.");
+            alert("(i) Devlogs is now active. (For debuggging)");
+            alert("(!) Please open DevTools and re-run the command.");
+
+            alerted = false;
+        };
+
+            document.body.style.background = "red";
+            document.body.style.color = 'black';
+
+            printAll.textContent = "DEVELOPER LOGS ACTIVE";
+            cmd.textContent = "DEVELOPER LOGS ACTIVE";
+
+            debugger;
+    } 
+
+    else if (cmds.value.trim().toLowerCase() === "edit") {
+
+        alert("(i) Type: 'none' if you do not want that option")
+
+        let msg = document.createElement("p");
+
+        let promptEdit = prompt("Which color?");
+        if (!promptEdit) return;
+
+        msg.style.color = promptEdit.trim().toLowerCase();
+
+        promptEdit = prompt("Which font?");
+        if (!promptEdit) return;
+
+        msg.style.fontFamily = promptEdit.trim().toLowerCase();
+
+        promptEdit = prompt("Which style? (Italic / Bold)");
+        if (!promptEdit) return;
+
+
+        if (promptEdit.trim().toLowerCase() === "italic") msg.style.fontStyle = "italic";
+        if (promptEdit.trim().toLowerCase() === "bold") msg.style.fontWeight = "bold";
+
+        msg.style.textAlign = "center";
+
+        msg.textContent = "This is the result";
+
+        document.body.appendChild(msg);
+
+    }
+
+    else {
+        alert("(i) Invalid Command!");
+        cmds.value = "";
+    }
+
+        cmds.value = "";
+
+};
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Enter") sendCommand();
+    });
+
+    function clearTerminal() {
+
+        if (printAll) printAll.textContent = "";
+        if (msg) msg.textContent = "";
+
+        if (cmds) cmds.textContent = "Enter command here";
+
+        document.body.style.background = "white";
+        
+        setTimeout(() => {
+            console.clear();
+        }, 1000);
+
+        console.warn("Cleared.");
+        alert("Cleared.");
+    }
+        
+    </script>
+
+</body>
+</html>

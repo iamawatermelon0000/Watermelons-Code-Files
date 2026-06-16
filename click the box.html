@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+  <h1>If the box teleports, you failed!</h1>
+  <style>
+    #box {
+      width: 50px;
+      height: 50px;
+      background: red;
+      border: 2px solid black;
+      position: absolute;
+      text-align: center;
+    }
+
+    body {
+      background: green;
+    }
+
+    .print {
+      color: red;
+      font-family: 'Courier New', Courier, monospace;
+      font-style: italic;
+    }
+
+    h1 {
+      text-align: center;
+    }
+  </style>
+  <div id="printStats" class="print"> `Your total attempt(s): ; Your total point(s): ;</div>
+  <div id="best" class="print">[Coming Soon]</div>
+
+  <div id="box">Click here to win</div>
+
+  <script>
+    let point = parseFloat(localStorage.getItem("point") || 0);
+    let tries = parseFloat(localStorage.getItem("tries") || 0);
+
+    let print = document.getElementById("printStats");
+
+    let clickWhat = document.getElementById("box");
+
+    let x = 0, y = 0;
+
+    document.addEventListener("click", e => {
+
+      if (point > 10 || tries > 50) {
+
+        alert("We've resetted your attempts!")
+
+        tries = 0;
+        print.textContent = `Your total attempt(s): ${tries}; Your total point(s): ${point}`;
+
+        save();
+      }
+
+      if (Math.random() < 0.1) {
+
+        alert("You successfully clicked the box!");
+        point++;
+        print.textContent = `Your total attempt(s): ${tries}; Your total point(s): ${point}`;
+
+        save();
+        return;
+
+      } else {
+        x = Math.floor(Math.random() * (999 + 1) + 1);
+        y = Math.floor(Math.random() * (400 + 1) + 1);
+
+        clickWhat.style.top = y + 'px';
+        clickWhat.style.left = x + 'px';
+
+        tries++;
+        print.textContent = `Your total attempt(s): ${tries}; Your total point(s): ${point}`;
+
+        save();
+      }
+
+      save();
+      print.textContent = `Your total attempt(s): ${tries}; Your total point(s): ${point}`;
+    });
+
+    function save() {
+      localStorage.setItem("point", point);
+      localStorage.setItem("tries", tries);
+    }
+  </script>
+</body>
+
+</html>

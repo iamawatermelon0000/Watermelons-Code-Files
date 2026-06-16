@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+  <style>
+
+    #status {
+      text-align: center;
+      font-weight: bold;
+      font-style: italic;
+    }
+
+    body {
+      margin: 5px;
+    }
+
+    #example {
+      margin: 5px;
+    }
+
+    #example2 {
+      margin: 5px;
+    }
+
+  </style>
+
+  <body>
+
+    <p>Press SPACE to pause</p>
+    <p id="status">Running</p>
+
+    <button 
+      type="button" 
+      id="example" 
+      title="pressing this button does nothing, its meant to repersent a running logic">
+      Example button
+    </button>
+
+    <div>
+    <input type="text" id="example2" placeholder="this is the same as the button">
+    </div>
+
+    <script>
+
+      let paused = false;
+      let count = 0
+      
+      let btn = document.getElementById("example");
+      let print = document.getElementById("status");
+      let inpt = document.getElementById("example2");
+
+      document.addEventListener("keydown", e => {
+          if (e.code === "Space") {
+
+            document.body.style.background = 'white';
+
+              paused = true;
+
+            if (paused) {
+
+                btn.disabled = true;
+                inpt.disabled = true;
+
+                print.textContent = "Paused";
+                count++
+
+            if (count > 1) {
+
+                paused = false;
+
+                btn.disabled = false;
+                inpt.disabled = false;
+
+                count = 0;
+                print.textContent = "Running";
+            }
+
+            }
+          }
+      });
+
+      btn.onclick = () => {
+          alert("why did you click it");
+          document.body.style.background = 'red';
+      }
+
+    </script>
+  </body>
+</html>

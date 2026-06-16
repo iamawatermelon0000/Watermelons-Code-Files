@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        button {
+            margin: 5px;
+        }
+
+        body {
+            background: grey;
+        }
+    </style>
+    <body>
+        <div>
+            <select id="chooseShape">
+                <option>Square</option>
+                <option>Rectangle</option>
+                <option>Triangle</option>
+            </select>
+
+            <select id="chooseEffect">
+                <option>None</option>
+                <option>Shake</option>
+                <option>Spin</option>
+            </select>
+        </div>
+
+        <div>
+        <button type="button" onclick="start()">Confirm</button>
+        <button type="button" onclick="clearAll()">Clear</button>
+        </div>
+
+        <div id="shapes"></div>
+
+
+        <script>
+
+        function start() {
+            let shapeType = document.getElementById("chooseShape").value;
+            let effect = document.getElementById("chooseEffect").value;
+
+            let container = document.getElementById("shapes");
+
+            let shape = document.createElement("div");
+
+            shape.style.margin = "20px auto";
+
+            if (shapeType === "Square") {
+                shape.style.width = "100px";
+                shape.style.height = "100px";
+                shape.style.background = "red";
+
+            } else if (shapeType === "Rectangle") {
+                shape.style.width = "100px";
+                shape.style.height = "200px";
+                shape.style.background = "red";
+
+            } else if (shapeType === "Triangle") {
+                shape.style.width = "0";
+                shape.style.height = "0";
+                shape.style.borderLeft = "50px solid transparent";
+                shape.style.borderRight = "50px solid transparent";
+                shape.style.borderBottom = "100px solid red";
+            }
+
+            if (effect === "Shake") {
+                shape.animate([
+                    { transform: 'translateX(0px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(0px)' }
+                ], { duration: 300, iterations: Infinity });
+            };
+
+            if (effect === "Spin") {
+                shape.animate([
+                    { transform: 'rotate(0deg)' },
+                    { transform: 'rotate(360deg)' }
+                ], { duration: 1000, iterations: Infinity });
+            };
+
+            container.appendChild(shape);
+        };
+
+        function clearAll() {
+            document.getElementById("shapes").innerHTML = '';
+        };
+
+        </script>
+    </body>
+</html>

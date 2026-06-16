@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>reach the requirement (dont mind the file name im running out of name)</title>
+
+    <style>
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      #printing {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 25px;
+
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+      }
+
+      button {
+        width: 250px;
+        height: 75px;
+        
+        font-size: 25px;
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        font-style: italic;
+      }
+
+      #buttons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 50px;
+
+        border: 2px solid black;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="printing">
+    <p id="requirement">Target Length:</p>
+    <p id="currentScore">Current Length:</p>
+    <p id="status"></p>
+    </div>
+
+    <div id="buttons">
+      <button type="button" onclick="removeLength()">-</button>
+      <button type="button" onclick="addLength()">+</button>
+    </div>
+
+    <script>
+      let prReq = document.getElementById("requirement");
+      let prCur = document.getElementById("currentScore");
+      let prSta = document.getElementById("status");
+
+      let req;
+      let cur = 0;
+      let winScore = Math.floor(Math.random() * (20 - 5 + 1)) + 5;
+
+      update();
+
+      function removeLength() {
+          cur--;
+          if (cur < 0) cur = 0;
+          prCur.textContent = `Current Length: ${cur}`;
+
+          if (cur >= req) {
+            prSta.textContent = `Target length reached, setting new target... (${winScore -= 1} until suprise)`
+            update();
+          }
+
+          if (winScore === 0) {
+            document.body.style.background = 'black';
+            document.body.innerHTML = "";
+            
+            setTimeout(() => {
+              alert("visit my github page! :)")
+              window.location.href = "https://github.com/iamawatermelon0000/My-HTML-codes"
+            }, 2500)
+          }
+      }
+
+      function addLength() {
+          cur++;
+          prCur.textContent = `Current Length: ${cur}`;
+
+          if (cur >= req) {
+            prSta.textContent = `Target length reached, setting new target... (${winScore -= 1} until suprise)`
+            update();
+          }
+
+          if (winScore === 0) {
+            document.body.style.background = 'black';
+            document.body.innerHTML = "";
+            
+            setTimeout(() => {
+              alert("visit my github page! :)");
+              window.location.href = "https://github.com/iamawatermelon0000/My-HTML-codes"
+            }, 2500)
+          }
+      }
+
+      function update() {
+        req = Math.floor(Math.random() * 20) + 1;
+        prReq.textContent = `Target Length: ${req}`;
+      }
+    </script>
+  </body>
+</html>

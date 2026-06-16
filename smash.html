@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Key-smashing program</title>
+    </head>
+    <body>
+        <input type="text" id="rnd" placeholder="Smash your keyboard here">
+        <button type="button" onclick="clearAll()">Click me to clear!</button>
+        <button type="button" onclick="send()">Click me to send!</button>
+        <p id="print"></p>
+
+        <script>
+            const sent = [
+                "Hello friend",
+                "Thanks!",
+                "Such inspiring words!",
+                "Wow, that's good.",
+                "How are you?",
+                "I agree with that.",
+                "Totally.",
+                "That's good news.",
+                "Nice, congrats man."
+            ];
+            const rareSent = [
+                "This has a chance of 1/100 (1%) of appearing"
+            ]
+
+            function send() {
+                let msg = document.getElementById("rnd").value;
+                if (msg.length === 0) {
+                    alert("you didnt type anything");
+                    return;
+                }
+
+                let random = sent[Math.floor(Math.random() * sent.length)];
+                let rare = rareSent[Math.floor(Math.random() * rareSent.length)];
+                
+                if (Math.random() < 0.01) {
+                    document.querySelector("#print").textContent = rare;
+                } else {
+                    document.querySelector("#print").textContent = random;
+                }
+            }
+
+            function clearAll() {
+                document.getElementById("print").textContent = "";
+                document.getElementById("rnd").value = "";
+            }
+        </script>
+    </body>
+</html>

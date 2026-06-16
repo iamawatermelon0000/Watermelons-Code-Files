@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<body>
+<input type="number" id="password">  
+  
+<button type="button" onclick="getPassword()">Click here</button>  
+
+<p>The Code will random a number across 0 to 1000, enter your guess in the input area.</p>
+  
+<script>  
+const correctPass = Math.floor(Math.random() * 1000) +1;  
+let tRy = 0;
+let on = false;
+const maxTry = 5;
+   
+function getPassword() { 
+     console.log("Try = ", tRy)   ;
+console.log(" You have", maxTry, "chance") ;
+   console.log("On =", on) ;  
+  
+ let pass = Number(document.getElementById("password").value) ;  
+
+ if (pass > correctPass) {
+    alert("Password is higher than corectPass");
+
+  } else {
+    alert("Password is smaller than correctPass")
+  }
+  
+    if (pass  === correctPass) {  
+  console.log("Try = ", ++tRy)  ;
+on = true  ;
+    console.log("On = ", on);  
+    alert(`The correct password is ${correctPass}, your password is ${pass}`) 
+} else {  
+   console.log("Try = ", ++tRy)   
+}
+  if (tRy === maxTry) {  
+    console.log("Try = 5, system locked!") ;  
+   on = false;  
+    return;  
+}  else if (tRy > 5) {
+  console.log("Dirty Cheater!!! You should be ashamed of yourself!!!!")
+}
+
+}  
+
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    #drinks {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 25px;
+
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    button {
+      width: 100px;
+      height: 50px;
+      
+      font-size: 20px;
+      font-weight: bold;
+      font-style: italic;
+    }
+
+    #cup {
+      height: 250px;
+      width: calc(250px / 2);
+      
+      background: grey;
+
+      text-align: center;
+      font-size: 20px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      flex-direction: column;
+      gap: 50px;
+    }
+  </style>
+  <body>
+
+    <div id="drinks">Drinks:
+      <button type="button" onclick="water()">Water</button>
+      <button type="button" onclick="coke()">Coca Cola</button>
+      <button type="button" onclick="pepsi()">Pepsi</button>
+      <button type="button" onclick="monster()">Monster</button>
+      <button type="button" onclick="oldCoke()">The Old Fashioned Coca Cola</button>
+
+      <p id="thirst">Thirst meter: %</p>
+    </div>
+
+    <div id="cup">cup</div>
+
+    <script>
+
+      let c = document.getElementById("cup");
+
+      let th = Number(localStorage.getItem("thirst") || 0);
+      let prTh = document.getElementById("thirst");
+
+      let iTh;
+      let iOp;
+      let opac_per = 1;
+
+      save();
+      prTh.textContent = `Thrist meter: ${th}%`;
+
+      iTh = setInterval(() => {
+        th++;
+        prTh.textContent = `Thrist meter: ${th}%`;
+
+        if (th >= 100) {
+          th = 0;
+          alert("You got dried out and died...");
+          location.reload();
+
+        } else if (th === 50) {
+          alert("You're thristy! Drink something now!");
+        };
+        save();
+
+      }, 1000);
+
+      function save() {
+        localStorage.setItem("thirst", th);
+      }
+
+      function water() {
+        if (th <= 15) th = 0;
+        if (th >= 15) th -= 15;
+
+        prTh.textContent = `Thrist meter: ${th}%`;
+
+        c.style.background = "blue";
+        save();
+      }
+
+      function coke() {
+        if (th <= 25) th = 0;
+        if (th >= 25) th -= 25;
+        
+
+        prTh.textContent = `Thrist meter: ${th}%`;
+
+        c.style.background = "brown";
+        save();
+      }
+
+      function pepsi() {
+        if (th <= 20) th = 0
+        if (th >= 20) th -= 20;
+
+        prTh.textContent = `Thrist meter: ${th}%`;
+
+        c.style.background = "black";
+        save();
+      }
+
+      function monster() {
+        if (th <= 25) th = 0;
+        if (th >= 25) th -= 25;
+
+        prTh.textContent = `Thrist meter: ${th}%`;
+
+        c.style.background = "cyan";
+        save();
+      }
+
+      function oldCoke() {
+        th = 0;
+        alert("So refreshing...");
+
+        c.style.background = "brown";
+
+        setTimeout(() => {
+          document.body.style.background = 'linear-gradient(to right, blue, red)';
+
+          alert('Why is the police here??!!!');
+
+          iOp = setInterval(() => {
+            opac_per -= 0.01;
+            document.body.style.opacity = opac_per;
+          }, 32);
+
+          alert("You got arrested for consuming the yk...");
+          
+        }, 500);
+
+        save();
+      }
+    </script>
+  </body>
+  </html>

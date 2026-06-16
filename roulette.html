@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+            background: grey;
+            text-align: center;
+            margin: 3px;
+            border: 2px solid black;
+        }
+        </style>
+    <body>
+        <h1>[=== Russian Roulette ===]</h1>
+        <div>Main Features: 
+
+        <button type="button" id="btn" onclick="start()">Start Playing.</button>
+        <button type="button" onclick="skip()">Skip The Current Round.</button>
+
+        </div>
+
+        <div>Bank Features: 
+        <button type="button" onclick="dep()">Deposit Cash HERE</button>
+        <button type="button" onclick="wtd()">Withdraw Cash HERE</button>
+
+        <p id="bank"></p>
+        </div>
+
+         <div>
+            The shop: (The items will be auto used after buying and start)
+            <select id="shop">
+                <option>+1 live</option> <!-- 5k -->
+                <option>Double or Nothing</option> <!-- 10k -->
+                <option>Shield</option> <!-- 15k -->
+                <option>Scanner</option> <!-- 20k -->
+                <option>Insurance</option> <!-- 3k -->
+                <option>Beer</option> <!-- 4k -->
+                <option>Pills</option> <!-- 1k -->
+                <option>Medkit</option> <!-- 12k -->
+                <option>Saw</option> <!-- 6k -->
+                <option>Background Randomizer</option> <!-- 50k --> <!-- PERNAMENT -->
+                <option>Swapper</option> <!-- 10k -->
+                <option>Lucky Day</option> <!-- 20k -->
+                <option>Sacrifice</option> <!-- 5k -->
+                <option>Water Bottle</option> <!-- 2k --> <!-- -2 sanity -->
+                <option>R.R.S.G's Stone</option> <!-- 150k, sanity = 0 --> <!-- DOES NOT STACK -->
+            </select>
+
+            <button type="button" onclick="buy()">Buy</button>
+        </div>
+
+        <p id="items"></p>
+
+        <p id="print"></p>
+        <p id="cash">Your current balance: </p>
+        <p id="lives">Your current lives: </p>
+        <p id="archive">Total achievement: </p>
+        <p id="sanity">Your sanity level: </p>
+
+
+        <script>
+
+            /* ARRAYS: BULL, SHOUTS, BACKGROUNDS, EFFECTS,... */
+
+            const chances = [
+                'Blank',
+                'Blank',
+                'Blank',
+                'Blank',
+                'Blank',
+                'Live',
+                'Live',
+                'Live',
+                'Live',
+                'Explosive'
+            ];
+
+            const shout = [
+                'Afraid of something?',
+                'Don\'t be afraid.',
+                'Keep it up.',
+                'End your nightmare.',
+                'What are you waiting? Open that door.'
+            ]
+
+            const rareShout = [
+                'WAKEUPWAKEUPWAKEUPWAKEUP',
+                'YOU DO NOT BELONG HERE. WAKE UP',
+                'EVER WONDERED WHY YOU ARE STILL HERE? EVERYTIME? EVERYDAY?'
+            ]
+
+            const effects = [
+                'Die',
+                '+5 lives',
+                '+1k cash',
+                'Lose 1 live'
+            ]
+
+            const background = [
+                'Red',
+                'Blue',
+                'Dark Blue',
+                'Green',
+                'Pink',
+                'Yellow'
+            ]
+
+            /* VARIABLES */
+
+            function loadNumber(key, fallback) {
+                const value = Number(localStorage.getItem(key));
+                return Number.isFinite(value) ? value : fallback;
+            }
+
+            function loadBoolean(key, fallback) {
+                const value = localStorage.getItem(key);
+
+                if (value === null) return fallback;
+                return value === "true";
+            }
+
+            let sanity = loadNumber("sanity", 0);
+            let interval;
+            let alerted = loadBoolean("alerted", true);
+
+            let btn = document.getElementById("btn");
+            let maxCap = 20;
+            let time = 0;
+            let stone = loadNumber("stone", 0);
+            let bottle = loadNumber("bottle", 0);
+            let achieve = loadNumber("achieve", 0);
+            let sac = loadNumber("sac", 0);
+            let luck = loadNumber("luck", 0);
+            let second = 0;
+            let swapper = loadNumber("swapper", 0);
+            let random = loadNumber("random", 0);
+            let item;
+            let saw = loadNumber("saw", 0);
+            let medkit = loadNumber("medkit", 0);
+            let pill = loadNumber("pill", 0);
+            let started = false;
+            let beer = loadNumber("beer", 0);
+            let bank = loadNumber("bank", 0);
+            let longestCombo = loadNumber("longestCombo", 0);
+            let combo = 0;
+            let insurance = loadNumber("insurance", 0);
+            let scanner = loadNumber("scanner", 0);
+            let shield = loadNumber("shield", 0);
+
+            let round;
+
+            let cash = loadNumber("cash", 100);
+            let lives = loadNumber("lives", 10);
+
+            /* PRINTING SECTION */
+
+            let printItems = document.getElementById("items");
+            let printBank = document.getElementById("bank");
+            let print = document.getElementById("print");
+            let print2 = document.getElementById("cash");
+            let print3 = document.getElementById("lives");
+            let print4 = document.getElementById("archive");
+            let printSan = document.getElementById("sanity");
+            
+            printAll();
+            printItems.textContent = 
+            `Your owned items: 
+            ${shield} shield(s); 
+            ${scanner} scanner(s); 
+            ${insurance} insurance(s); 
+            ${beer} beer(s);
+            ${pill} pill(s);
+            ${medkit} medkit(s);
+            ${saw} saws;
+            ${swapper} swappers;
+            ${luck} luck;
+            ${sac} sacrifices;
+            ${bottle} water bottle(s);
+            ${stone} stone(s);
+            These will be used if you click: Start.
+             .`;
+
+            /* OTHER FUNCTION SECTIONS */
+
+            if (Math.random() <= 0.01) {
+                alert(rareShout[Math.floor(Math.random() * rareShout.length)]);
+
+                    achieve++;
+
+        } else {
+        alert(shout[Math.floor(Math.random() * shout.length)]);
+    }
+
+         if (random >= 1) {
+                let int = setInterval(() => {
+                    document.body.style.background = background[Math.floor(Math.random() * background.length)];
+                    second++;
+
+                    if (second >= 20) {
+                        clearInterval(int);
+
+                        document.body.style.background = "White";
+                    }
+
+                    }, 1000);
+                    
+                }
+
+                /*   RANDOM ROUND */
+                
+                function randomRound() {
+                    return chances[Math.floor(Math.random() * chances.length)];
+
+                }
+
+                /* IDLE SECTION */
+
+                interval = setInterval(() => {
+                    sanity = 0;
+                    time++;
+
+                    if (time > 20) {
+                        sanity += 2;
+                    }
+                    
+                }, 1000)
+
+                /* START GAME SECTION */
+
+            function start() {
+
+                if (started) {
+                    alert("Do NOT try to cheat.");
+                    cash -= cash * 50 / 100;
+                    return;
+                }
+
+                if (alerted) { alert("You can press SPACE to shoot the round."); alerted = false; }
+
+                started = true;
+                btn.disabled = true;
+
+                if (!interval) {
+                    interval = setInterval(() => {
+
+                    if (bottle >= 1) {
+                        sanity -= bottle;
+                    }
+
+                    
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+                    sanity += 0.5;
+
+                    if (sanity < 0) {
+                        sanity = 0;
+                    }
+
+                    if (sanity >= 50) {
+                        printSan.textContent = `Your sanity level is..... ${sanity}? How much do you believe in this world?`
+                        
+                        let backgrounds = [
+                            'White',
+                            'Black',
+                            'White',
+                            'Blank'
+                        ]
+
+                        document.body.style.background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+                    }
+
+                   if (sanity >= 30) {
+
+                        chances.push('Live');
+                        chances.push('Explosive');
+
+
+                   } else if (sanity >= 20) {
+
+                    chances.push('Explosive');
+
+                   } else if (sanity >= 10) {
+
+                    chances.push('Live');
+
+                   } else if (sanity <= 0) {
+
+                        chances.push('Blank');
+                        cash += 1999;
+                    } else if (sanity <= 5) {
+
+                        chances.push('Blank');
+
+                    } 
+
+                    while (chances.length > maxCap) {
+                        chances.splice(Math.floor(Math.random() * chances.length), 1);
+                    }
+
+                }, 5000);
+
+                }
+
+                round = randomRound();
+
+                 if (scanner >= 1) {
+
+                    if (Math.random() < 0.01) {
+                        if (round === 'Live') print.textContent = `The next round is Blank.`;
+                        if (round === 'Blank') print.textContent = `The next round is Live.`;
+                    }
+
+                    let choice = confirm('Shoot _ No or Skip _ Yes?'); 
+
+                    if (choice) {
+                        print.textContent = `The round was ${round}...`;
+
+                            cash -= Math.max(100, Math.floor(cash * 0.1));
+
+                            started = false;
+
+                                return;
+                } 
+
+                    scanner -= 1;
+                }
+
+
+                if (achieve >= 6) achieve = 6;
+
+                if (stone > 1) {
+                    stone = 0;
+                    print2.textContent = `You cannot have more than 1 stone at a time.`;
+                    cash -= 150000;
+
+            } else if (stone === 1) {
+                    sanity -= sanity;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+                } 
+
+            
+                /* MAIN GAME */
+
+                alert('Spinning cylinder.....');
+
+                setTimeout(() => {
+                    alert('Cylinder spun!');
+
+                    if (beer >= 1) {
+                        round = chances[Math.floor(Math.random() * chances.length)];
+                        print.textContent = 'Round randomed.';
+                        beer -= 1;
+                    }
+
+
+                    if (Math.random() <= 0.007) {
+                        print.textContent = 'You won the JACKPOT: +$12000, survive the shot.';
+                        print2.textContent = `Your current balance: ${cash += 12000}.`;
+
+                        achieve++;
+                        return; 
+                    }
+
+                    if (Math.random() < 0.03) {
+
+                        document.body.style.background = "black";
+                        alert('(o) (o) Someone is watching you...');
+
+                        setTimeout(() => {
+                            document.body.style.background = "white";
+                        }, 3000);
+
+                        achieve++;
+                    }
+
+                    if (pill >= 1) {
+                       let e = effects[Math.floor(Math.random() * effects.length)];
+
+                        if (e === 'Die') {
+                            lives = 0;
+                            print.textContent = `The effect was: ${e}.`
+                        }
+
+                        if (e === '+5 lives') {
+                            lives += 5;
+                            print.textContent = `The effect was: ${e}.`
+                        }
+
+                        if (e === '+1k cash') {
+                            cash += 1000;
+                            print.textContent = `The effect was: ${e}.`
+                        }
+
+                        if (e === 'Lose 1 live') {
+                            lives -= 1;
+                            print.textContent = `The effect was: ${e}.`
+                        }
+
+                        pill -= 1;
+                    }
+
+                    if (swapper >= 1) {
+                        print.textContent = "You used the swapper, the round is now inverted.";
+
+                        if (round === 'Blank') round = 'Live';
+                        if (round === 'Live') round = 'Blank';
+
+                        swapper -= 1;
+                    }
+
+                    if (isNaN(luck)) luck = 1;
+
+                    if (luck >= 1) {
+                        chances.push('Blank');
+                        luck -= 1;
+                         if (luck <= 0) {
+                            chances.push('Live');
+                            luck += 1;
+                         }
+                    }
+
+                    if (sac >= 1) {
+
+                        chances.push('Live');
+                        lives -= 2;
+                        cash += 50000;
+                        sac -= 1;
+
+                        print.textContent = `You sold 2 lives for $50k.`;
+                        print2.textContent =  `Your current balance: $${cash}.`;
+                    print3.textContent = `Your current lives: ${lives}.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+                    }
+
+                if (round === 'Blank') {
+                    if (saw >= 1) {
+                        print.textContent = `You used the saw, but it didn't worked.`;
+                        print2.textContent = `Your current balance is: ${cash += 7500}.`;
+                        saw -= 1;
+                    }
+
+                    print.textContent = `It was a BLANK. You survived, for now.`;
+                    print2.textContent =  `Your current balance: $${cash += 5000}.`;
+                    print3.textContent = `Your current lives: ${lives}.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+
+                    combo += 1;
+
+                    if (combo > longestCombo) {
+                    longestCombo = combo;
+                    }
+
+                    if (combo%10 === 0) {
+                        print.textContent = 'You survived 10+ times, here\'s your reward.';
+                        print2.textContent = `Your current balance: ${cash += 20000}.`;
+
+                        achieve++;
+                    }
+
+                }  else if (round === 'Live') {
+
+                    if (shield >= 1) {
+                            shield -= 1;
+                            print.textContent = `The shield saved you. Shield = ${shield}.`;
+                            print2.textContent = `Your current balance: ${cash}.`;
+                            return;
+                        }
+
+                    if (Math.random() < 0.001) {
+                        print.textContent = 'The gun misfired. You are alive.';
+                        print2.textContent = `Your current balance: ${cash += 2500}.`;
+
+                        achieve++;
+                        return;
+                    }
+
+                    if (saw >= 1) {
+                        saw -= 1;
+
+                        print.textContent = `The saw got your 2 lives gone.`;
+                        lives -= 2;
+
+                        print2.textContent = `Your current balance is: ${cash += 4000}.`
+                        return;
+                    }
+
+                    print.textContent = `It was a LIVE.`;
+                    print2.textContent =  `Your current balance: $${cash += 500}.`;
+                    print3.textContent = `You have ${lives -= 1} lives left.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+                    combo = Math.max(0, --combo)
+
+
+                } else if (round === 'Explosive') {
+                    print.textContent = 'It exploded. The damage dealt is 3x.'
+                    print2.textContent = `Your current balance hasn't been updated, balance: ${cash}.`;
+                    print3.textContent = `Your current lives: ${lives -= 3}.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+                    combo--;
+
+
+                    if (lives < 0) {
+                        lives = 0;
+                    }
+                }
+                
+
+                if (lives <= 0) {
+                    if (insurance >= 1) {
+                        alert(`Insurance kept 50% of your cash...`);
+
+                        cash *= 50 / 100;
+                        lives += 5;
+                        insurance -= 1;
+
+                        return;
+                    }
+
+                    if (medkit >= 1) {
+                        alert(`The medkit revived you.`);
+
+                        medkit -= 1;
+                        lives += 3;
+
+                        return;
+                    }
+
+                    alert("You are dead. 99% of your money are lost for 10 lives..");
+                
+                    cash *= 90 / 100;
+                    lives = 10;
+                    combo = 0;
+
+                    print2.textContent = `Your current balance: ${cash}, lives: ${lives}.`;
+
+                    started = false;
+                
+                    return;
+                }
+
+           localStr(); // SAVE LOCALSTORAGE (so you wont lost ur precious progress)
+
+            started = false; 
+            btn.disabled = false; // ALLOW REPLAYING
+
+            }, 1000)
+ 
+        }
+
+            /* SKIP SECTION */
+
+            function skip() {
+                alert("Skipping will costs you $1k. Believe in your luck instead.");
+
+                if (cash < 1000) {
+                    print2.textContent = `You are too broke to skip the current round. Your current balance: ${cash}.`;
+                    return;
+                }
+
+                cash -= 1000;
+
+                print.textContent = `You skipped this round.`;
+                        
+                    print2.textContent =  `Your current balance: $${cash}.`;
+                    print3.textContent = `Your current lives: ${lives}.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+
+                    round = chances[Math.floor(Math.random() * chances.length)];
+            started = false;
+                    
+            }
+
+            /* SHOP SECTION */
+
+            function buy() {
+
+                item = document.getElementById("shop").value;
+
+                if (item === "+1 live") {
+                    if (cash < 5000) {
+                        print2.textContent = 
+                        `You're broke! Your current balance: ${cash}, while the item costs 5k.`
+                    } else {
+                        print2.textContent = 
+                        `Your bought the '+1 live' package. Your current balance: ${cash -= 5000}.`;
+                        print3.textContent = `Your current lives: ${lives += 1}.`;
+                        print4.textContent = `Total achievements: ${achieve} / 6.`;
+                        printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+
+                    }
+                }
+
+                if (item === "Double or Nothing") {
+                    if (cash < 10000) {
+                        print2.textContent = 
+                        `You're broke! Your current balance: ${cash}, while the item costs 10k.`
+                    } else {
+                        print2.textContent =
+                        `You bought the DOUBLE OR NOTHING. Prepare for the chaos.`;
+                        cash -= 10000;
+                        round = chances[Math.floor(Math.random() * chances.length)]; 
+
+
+                if (round === 'Blank') {
+                     print.textContent = `It was a BLANK. You survived, for now.`;
+                    print2.textContent =  `Your current balance: $${cash += 15000}.`;
+                    print3.textContent = `Your current lives: ${lives}.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+
+
+                }  else if (round === 'Live') {
+                    print.textContent = `It was a LIVE.`;
+                    print2.textContent =  `Your current balance: $${cash += 500}.`;
+                    print3.textContent = `You have ${lives -= 2} lives left.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+                    combo--;
+
+
+                } else if (round === 'Explosive') {
+                    print.textContent = 'The gun exploded right in your face.';
+                    print2.textContent = `Your current balance: $${cash += 1000}.`;
+                    print3.textContent = `You have ${lives -= 6} lives left.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+
+                    combo--
+
+                } 
+            
+                if (lives <= 0) {
+                    if (insurance >= 1) {
+                        alert(`Insurance kept 50% of your cash...`);
+
+                        cash *= 50 / 100;
+                        lives += 5;
+                        insurance -= 1;
+
+                        return;
+                    }
+
+                    if (medkit >= 1) {
+                        alert(`The medkit revived you.`);
+
+                        medkit -= 1;
+                        lives += 3;
+
+                        return;
+                    }
+
+                    alert("You are dead. 99% of your money are lost for 10 lives..");
+                
+                    cash *= 90 / 100;
+                    lives = 10;
+                    combo = 0;
+
+                    print2.textContent = `Your current balance: ${cash}, lives: ${lives}.`;
+                    return;
+                }
+                    }
+                }
+
+                if (item === "Shield") {
+                    if (cash < 15000) {
+                        print2.textContent = `You're broke! The shield requires $15k. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the shield for 15k! Shield = ${shield += 1}. Your current balance: ${cash -= 15000}.`;
+                    }
+                }
+
+                if (item === "Scanner") {
+                    if (cash < 20000) {
+                        print2.textContent = `You're broke! The scanner requires $20k, your current balance: ${cash}.`;
+                    } else {
+                        scanner += 1;
+                        print2.textContent = `You bought the scanner for 20k. Your current balance: ${cash -= 20000}.`; 
+                    }
+                }
+
+                if (item === "Insurance") {
+                    if (cash < 3000) {
+                        print2.textContent = `Brokie cannot even afford $3k. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought insurance for $3k. Your current balance: ${cash -= 3000}.`;
+                        insurance = 1;
+                    }
+                }
+
+                if (item === "Beer") {
+                    if (cash < 4000) {
+                        print2.textContent = `This item needs atleast $4k. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought a beer for $4k. Your current balance: ${cash -= 4000}.`;
+                        beer += 1;
+                    }
+                }
+
+                if (item === "Pills") {
+                    if (cash < 1000) {
+                        print2.textContent = `Wow you can't even afford $1k. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the pills for $1k. Your current balance: ${cash -= 1000}.`
+                        pill += 1
+                    }
+                }
+
+                if (item === "Medkit") {
+                    if (cash < 12000) {
+                        print2.textContent = `This item needs atleast $12k, your current balance is: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the medkit for $12k, your current balance is: ${cash -= 12000}.`
+                        medkit += 1;
+                    }
+                }
+
+                if (item === "Saw") {
+                    if (cash < 6000) {
+                        print2.textContent = `The saw has not been bought it needs atleast $6k. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the saw for $6k. Your current balance: ${cash -= 6000}.`;
+                        saw += 1;
+                    }
+                }
+
+                if (item === "Background Randomizer") {
+                    if (cash < 50000) {
+                        print2.textContent = `You don't have enough money. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the Background randomizer. It's pernament. Your current balance: ${cash -= 50000}.`;
+                        random += 1;
+
+                    }
+                }
+
+                if (item === "Swapper") {
+                    if (cash < 10000) {
+                        print2.textContent = `Denied, you're broke. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the SWAPPER for $10k, your current balance: ${cash -= 10000}.`;
+                        swapper += 1;
+                    }
+                }
+
+                if (item === "Lucky Day") {
+                    if (cash < 20000) {
+                        print2.textContent = `You're too broke. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the LUCKY DAY for $20k. Your current balance: ${cash -= 20000}.`;
+                        luck += 1;
+                    }
+                }
+
+                if (item === "Sacrifice") {
+                    if (cash < 5000 ) {
+                        print2.textContent = `You can't afford this. Your current balance: ${cash -= 1}.`;
+                    } else {
+                        print2.textContent = 
+                            `You bought the item: SACRIFICE _ Loses 2 lives for 5k. Your current balance: ${cash -= 5000}.`
+                            sac += 1;
+                    }
+                }
+
+                if (item === "Water Bottle") {
+                    if (cash < 2000) {
+                        print2.textContent = `You cannot buy this water bottle. Your current balance: ${cash}.`;
+                    } else {
+                        print2.textContent = `You bought the water bottle for $2k. Your current balance: ${cash -= 2000}.`;
+                        bottle += 1;
+                    }
+                }
+            
+                if (item === "R.R.S.G's Stone") {
+                    if (cash < 150000) {
+                        print2.textContent = `You need more money. Your current balance: ${cash}.`;
+                } else {
+                    stone += 1;
+                    print2.textContent = 
+`You bought R.R.S.G's Stone for $150k. You cannot stack this product. Your current balance: ${cash -= 150000}.`;
+                }
+
+                printItems.textContent = 
+            `Your owned items: 
+            ${shield} shield(s); 
+            ${scanner} scanner(s); 
+            ${insurance} insurance(s); 
+            ${beer} beer(s);
+            ${pill} pill(s);
+            ${medkit} medkit(s);
+            ${saw} saws;
+            ${swapper} swappers;
+            ${luck} luck;
+            ${sac} sacrifices;
+            ${bottle} water bottle(s);
+            ${stone} stone(s);
+            These will be used if you click: Start.
+             .`;
+
+
+
+           localStr();
+
+           started = false;
+           btn.disabled = false;
+           achieve++;
+            }
+    }
+
+            /* BANK SECTIONS */
+
+            function dep() {
+                let ask = prompt("How much do you wanna deposit?");
+
+                if (ask === null) return;
+
+                 ask = ask.toLowerCase().trim()
+
+
+                if (ask.toLowerCase().trim() === "all") {
+                    bank += cash;
+                    cash = 0;
+                } else if (Number(ask) < 0) {
+                    alert("Cannot deposit negative ammounts.");
+                } else if (Number(ask) > cash) {
+                    alert("The value is greater than your cash.");
+                } else if (Number(ask) === 0) {
+                    alert("Pleaese enter a value that is greater than 0");
+                } else if (isNaN(Number(ask))) {
+                    alert("Please enter a number.");
+                } else {
+                    bank += Number(ask);
+                    cash -= Number(ask);
+                }
+
+                printBank.textContent = `Bank: ${bank}, Cash: ${cash}.`;
+
+           localStr();
+            }
+
+            function wtd() {
+                let ask2 = prompt("How much do you wanna withdraw?");
+
+                if (ask2 === null) return;
+
+                ask2 = ask2.toLowerCase().trim()
+
+                if (ask2 === "all") {
+                    cash += bank;
+                    bank = 0;
+                } else if (Number(ask2) <= 0) {
+                    alert("Cannot withdraw negative numbers / 0.");
+                } else if (Number(ask2) > bank) {
+                    alert("The value is greater than your balance.");
+                } else if (isNaN(Number(ask2))) {
+                    alert("Please enter a number.");
+                } else {
+                    cash += Number(ask2);
+                    bank -= Number(ask2);
+                }
+
+                printBank.textContent = `Bank: ${bank}, Cash: ${cash}.`;
+
+                localStr();
+
+            }
+
+            /* LOCALSTORAGE SECTION */
+
+            function localStr() {
+                localStorage.setItem("cash", cash);
+                localStorage.setItem("lives", lives);
+                localStorage.setItem("medkit", medkit);
+                localStorage.setItem("pill", pill);
+                localStorage.setItem("beer", beer);
+                localStorage.setItem("bank", bank);
+                localStorage.setItem("longestCombo", longestCombo);
+                localStorage.setItem("insurance", insurance);
+                localStorage.setItem("scanner", scanner);
+                localStorage.setItem("shield", shield);
+                localStorage.setItem("saw", saw);
+                localStorage.setItem("random", random);
+                localStorage.setItem("swapper", swapper);
+                localStorage.setItem("luck", luck);
+                localStorage.setItem("sac", sac);
+                localStorage.setItem("achieve", achieve);
+                localStorage.setItem("sanity", sanity);
+                localStorage.setItem("bottle", bottle);
+                localStorage.setItem("stone", stone);
+                localStorage.setItem("alerted", alerted);
+            };
+
+            function printAll() {
+                    print2.textContent =  `Your current balance: $${cash}.`;
+                    print3.textContent = `Your current lives: ${lives}.`;
+                    print4.textContent = `Total achievements: ${achieve} / 6.`;
+                    printSan.textContent = `Your current sanity level: ${sanity}.`;
+                    printBank.textContent = `Bank: ${bank}, Cash: ${cash}.`;
+            }
+
+            /* SHORTCUT, DEVELOPER TOOL */
+            document.addEventListener("keydown",  e => {
+                if (e.code === "Space") { start(); }
+
+                if (e.key === ".") { 
+                    const password = "secret";
+
+                    let enterPass = prompt("Please enter password.")
+
+                    if (password === enterPass.trim().toLowerCase()) {
+
+                    cash = 10 ** 99; 
+                    alert("edited."); 
+
+                    localStr(); 
+                    printAll();
+                 } else if (enterPass.trim().toLowerCase() === "debug") {
+                    alert("PRESS F12 FIRST")
+                    setTimeout(() => {
+                            debugger;
+                    }, 2000);
+                 }
+                 
+                 else {
+                    alert("Incorrect password. You have been punished.")
+                    cash *= 25 / 100;
+                    
+                    localStr();
+                    printAll();
+                 }
+                }
+            })
+
+            /* DEVELOER'S NOTE
+                - this project took me a few weeks
+                - it was sooo long
+                - thanks for playing :3
+             */
+        </script>
+    </body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <style>
+    #ship {
+      position: absolute;
+      width: 100px;
+      height: 50px;
+      background: lime;
+      bottom: 50px;
+    }
+
+    #gun {
+      width: 25px;
+      height: 50px;
+      position: absolute;
+      bottom: 100px;
+      background: black;  
+    }
+
+    #enemy {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: red;
+      top: 0;
+    }
+
+    body {
+      background: green;
+    }
+
+    #info {
+      position: fixed;
+      font-style: italic;
+      bottom: 0;
+    }
+
+    .container {
+      display: inline-block;
+    }
+  </style>
+
+  <body>
+    <p id="info">Press F / Click to shoot (lowercase), press J (lowercase) to save. (automatic saving does not exist) / im lying ofc</p>
+    <p id="points">0</p>
+
+    <div id="enemy">alien</div>
+
+    <div class="container">
+
+    <div id="gun"></div>
+    <div id="ship">your spaceship</div>
+
+    </div>
+
+    <script>
+      let enemy = document.getElementById("enemy");
+
+      let spaceship = document.getElementById("ship");
+      let gun = document.getElementById("gun");
+
+      let print = document.getElementById("points");
+      let point = Number(localStorage.getItem("point") || 0);
+
+      let x = 0;
+
+      let ex = 0, ey = 0;
+
+      let speed = 2;
+
+      try {
+      reroll();
+      move();
+
+      save();
+      print.textContent = point;
+    } catch (err) {
+          document.body.innerHTML += `<p>${err}</p>`
+    }
+
+      document.addEventListener("keydown", e => {
+
+          if (e.key === "d" || e.key === "ArrowRight") x += 10;
+          if (e.key === "a" || e.key === "ArrowLeft") x -= 10;
+
+          if (e.key === "f") shoot();
+          if (e.key === "j") save();
+
+
+          if (x < 0) x = 0;
+
+          if (x + spaceship.offsetWidth > window.innerWidth) x = window.innerWidth - spaceship.offsetWidth;
+
+          spaceship.style.left = x + 'px';
+          gun.style.left = x + 'px';
+
+      });
+
+      document.addEventListener("click", () => {
+          shoot();
+      })
+
+      function shoot() {
+
+          let bullet = document.createElement("div");
+          let posY = 0;
+
+          bullet.style.left = x + 'px';
+          bullet.style.top = posY + 'px';
+
+          bullet.style.position = 'absolute';
+          bullet.style.width = 10 + 'px';
+          bullet.style.height = 20 + 'px';
+          bullet.style.background = 'blue';
+
+          let int = setInterval(() => {
+              posY -= 1;
+
+              let enemyRect = enemy.getBoundingClientRect();
+              let bulletRect = bullet.getBoundingClientRect();
+
+    if (
+            bulletRect.left < enemyRect.right && 
+            bulletRect.right > enemyRect.left &&
+            bulletRect.top < enemyRect.bottom && 
+            bulletRect.bottom > enemyRect.top
+        ) {
+            clearInterval(int);
+            bullet.remove();
+
+            reroll();
+
+            point += 1;
+
+            save();
+            print.textContent = point;
+        }
+
+    if (posY < -20) {
+      clearInterval(int); 
+        bullet.remove();
+    }
+
+      if (point >= 100) {
+        let file = document.createElement("a");
+
+        file.href = "special-thanks.txt";
+        file.download = "special-thanks.txt";
+        
+        document.body.appendChild(file);
+        file.click();
+      }
+
+        bullet.style.top = posY + 'px';
+        
+      }, 16);
+
+      document.body.appendChild(bullet);
+
+    }
+
+      function reroll() {
+        ex = Math.floor(Math.random() * (window.innerWidth - 60));
+
+        enemy.style.left = ex + 'px';
+      }
+
+      function save() {
+        localStorage.setItem("point", point);
+      }
+
+      function move() {
+              ex += speed;
+
+              if (Math.random() < 0.01) {
+                  if (speed === -2) speed = 2;
+                  if (speed === 2) speed = -2;
+              }
+
+              if (ex <= 0) speed = 2;
+              if (ex + enemy.offsetWidth >= window.innerWidth) speed = -2;
+
+              enemy.style.left = ex + 'px';
+
+              requestAnimationFrame(move);
+      };
+
+    </script>
+  </body>
+</html>

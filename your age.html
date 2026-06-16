@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>Enter your year of birth in the input below, and we'll tell how old you are.</p>
+  <div><input type="number" id="inputYOB"></div>
+
+  <div><input type="number" id="inputCY"></div>
+
+<p>Enter the current year above.</p>
+
+<div>
+<button type="button" onclick="tellAge()">Click me to activate</button>
+<button type="button" onclick="clearAll()">Click me to clear the console</button>
+</div>
+
+    <script>
+        function tellAge() {
+            let age = Number(document.getElementById("inputYOB").value);
+            let year = Number(document.getElementById("inputCY").value);
+            let currentAge = year - age;
+
+            console.log(`Your age is ${year - age}`);
+
+            if (currentAge <= 5) {
+                console.log("You\'re a kid!");
+
+            } else if (currentAge < 18) {
+                console.log("You\'re a minor (under 18)!");
+
+            } else if (currentAge >= 18) {
+                console.log("You\'re an adult! (18+)");
+
+            } 
+
+
+           age = 0;
+           year = 0;
+           currentAge = 0;
+            }
+
+            
+            let timer = 0;
+
+       function clearAll() {
+    console.clear();
+
+    alert("(!) An error has been detected! Please wait....");
+
+    let timer = 0;
+
+    let interval = setInterval(() => {
+        timer++;
+        console.log(`Resolving.... ${timer}% completed.`);
+
+        if (timer >= 100) {
+            clearInterval(interval);
+            alert("(i) The issue has been resolved successfully.");
+            console.clear();
+        }
+    }, 120);
+}
+            
+    </script>
+
+</body>
+</html>

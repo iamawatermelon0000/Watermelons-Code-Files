@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Chart.html (my first one ever)</title>
+
+    <style>
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-weight: bold;
+        font-style: italic;
+
+        text-align: center;
+      }
+
+      #inputArea {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      textarea {
+        width: 250px;
+        height: 125px;
+
+        resize: none;
+        font-size: 25px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="inputArea">Number of Charts:
+      <select id="numberOfCharts">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+      </select>
+
+      <textarea id="data" placeholder="Enter data here, theyll be splited by SPACE (' ')"></textarea>
+
+      <button type="button" onclick="renderChart()">Show chart (MAKE SURE YOU'VE FILLED EVERYTHING)</button>
+      <button type="button" onclick="clearAll()">Clear all charts and datas</button>
+    </div>
+
+    <script>
+
+      let c1;
+      let c2;
+      let c3;
+      let c4;
+
+      let honorableMention = "honorable mention";
+
+      function renderChart() {
+
+        clearAll();
+        alert("Rendering...");
+
+        setTimeout(() => {
+
+        let num = Number(document.getElementById("numberOfCharts").value);
+        let chartData = document.getElementById("data").value;
+        let d = chartData.split(/\s+/);
+
+        if (!d) {
+            alert("Empty data!");
+            return;
+        }
+
+        if (num === 1 || d.length === 1) {
+
+          c1 = document.createElement("div");
+
+          c1.style.width = "75px";
+          c1.style.height = d[0] + 'px';
+
+          c1.style.color = 'white';
+          c1.style.background = 'red';
+
+          c1.style.position = 'fixed';
+          c1.style.bottom = '0';
+          c1.style.left = ((window.innerWidth - 75) / 4) + 'px';
+
+          c1.textContent = d[0];
+
+          document.body.appendChild(c1);
+
+        } else if (num === 2 || d.length === 2) {
+
+          c1 = document.createElement("div");
+
+          c1.style.width = "75px";
+          c1.style.height = d[0] + 'px';
+
+          c1.style.color = 'white';
+          c1.style.background = 'red';;
+
+          c1.style.position = 'fixed';
+          c1.style.bottom = '0';
+          c1.style.left = Math.floor(((window.innerWidth - 75) / 4)) + 'px';
+
+          c1.textContent = d[0];
+          //                      //
+          c2 = document.createElement("div");
+
+          c2.style.width = "75px";
+          c2.style.height = d[1] + 'px';
+
+          c2.style.color = 'white';
+          c2.style.background = 'green';;
+
+          c2.style.position = 'fixed';
+          c2.style.bottom = '0';
+          c2.style.left = Math.floor(((window.innerWidth - 75) / 3)) + 'px';
+
+          c2.textContent = d[1];
+
+          document.body.appendChild(c1);
+          document.body.appendChild(c2);
+
+        } else if (num === 3 || d.length === 3) {
+
+          c1 = document.createElement("div");
+
+          c1.style.width = "75px";
+          c1.style.height = d[0] + 'px';
+
+          c1.style.color = 'white';
+          c1.style.background = 'red';;
+
+          c1.style.position = 'fixed';
+          c1.style.bottom = '0';
+          c1.style.left = Math.floor(((window.innerWidth - 75) / 4)) + 'px';
+
+          c1.textContent = d[0];
+          //        sdlkjngnsodafosalkfsaofsalk;fsaokfjsaofjhsaokifjsakoifjsdaf              //
+          c2 = document.createElement("div");
+
+          c2.style.width = "75px";
+          c2.style.height = d[1] + 'px';
+
+          c2.style.color = 'white';
+          c2.style.background = 'green';;
+
+          c2.style.position = 'fixed';
+          c2.style.bottom = '0';
+          c2.style.left = Math.floor(((window.innerWidth - 75) / 3)) + 'px';
+
+          c2.textContent = d[1];
+          //           splitting so i can see duh           //
+          c3 = document.createElement("div");
+
+          c3.style.width = "75px";
+          c3.style.height = d[2] + 'px';
+
+          c3.style.color = 'white';
+          c3.style.background = 'blue';;
+
+          c3.style.position = 'fixed';
+          c3.style.bottom = '0';
+          c3.style.left = Math.floor(((window.innerWidth - 75) / 2)) + 'px';
+
+          c3.textContent = d[2];
+
+          document.body.appendChild(c1);
+          document.body.appendChild(c2);
+          document.body.appendChild(c3);
+
+        } else {
+
+          c1 = document.createElement("div");
+
+          c1.style.width = "75px";
+          c1.style.height = d[0] + 'px';
+
+          c1.style.color = 'white';
+          c1.style.background = 'red';;
+
+          c1.style.position = 'fixed';
+          c1.style.bottom = '0';
+          c1.style.left = Math.floor(((window.innerWidth - 75) / 4)) + 'px';
+
+          c1.textContent = d[0];
+          //        sdlkjngnsodafosalkfsaofsalk;fsaokfjsaofjhsaokifjsakoifjsdaf              //
+          c2 = document.createElement("div");
+
+          c2.style.width = "75px";
+          c2.style.height = d[1] + 'px';
+
+          c2.style.color = 'white';
+          c2.style.background = 'green';;
+
+          c2.style.position = 'fixed';
+          c2.style.bottom = '0';
+          c2.style.left = Math.floor(((window.innerWidth - 75) / 3)) + 'px';
+
+          c2.textContent = d[1];
+          //           splitting so i can see duh           //
+          c3 = document.createElement("div");
+
+          c3.style.width = "75px";
+          c3.style.height = d[2] + 'px';
+
+          c3.style.color = 'white';
+          c3.style.background = 'blue';;
+
+          c3.style.position = 'fixed';
+          c3.style.bottom = '0';
+          c3.style.left = Math.floor(((window.innerWidth - 75) / 2)) + 'px';
+
+          c3.textContent = d[2];
+          //        this is the last one           //
+          c4 = document.createElement("div");
+
+          c4.style.width = "75px";
+          c4.style.height = d[3] + 'px';
+
+          c4.style.color = 'white';
+          c4.style.background = 'yellow';;
+
+          c4.style.position = 'fixed';
+          c4.style.bottom = '0';
+          c4.style.left = (window.innerWidth - 75) + 'px';
+
+          c4.textContent = d[3];
+
+
+          document.body.appendChild(c1);
+          document.body.appendChild(c2);
+          document.body.appendChild(c3);
+          document.body.appendChild(c4);
+        }
+      }, 500);
+      }
+
+      function clearAll() {
+        if (c1) c1.remove(); c1 = null;
+        if (c2) c2.remove(); c2 = null;
+        if (c3) c3.remove(); c3 = null;
+        if (c4) c4.remove(); c4 = null;
+      }
+    </script>
+  </body>
+</html>

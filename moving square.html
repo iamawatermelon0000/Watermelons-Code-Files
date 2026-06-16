@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        #box {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: lime;
+            border: 4px solid black;
+        }
+
+        #enemy1 {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: red;
+            border: 2px solid black;
+        }
+    </style>
+    <body>
+        <div id="point"></div>
+        <div id="box"></div>
+
+        <div id="enemy1"></div>
+
+        <script>
+            // Player & Enemy (1)
+            let bsquare = document.getElementById("box");
+            let en = document.getElementById("enemy1");
+
+            // Position (2)
+            let x = 0; 
+            let y = 0;
+            let px = 0, py = 0;
+            let ex = 300, ey = 300;
+
+            // Others (3)
+            let points = 0;
+            let print = document.getElementById("point");
+
+            setInterval(() => {
+                points++;
+                print.textContent = `Your current score: ${points}.`;
+            }, 1500);
+
+            document.addEventListener("keydown", e => {
+                if (e.key === "w") {
+                    y -= 10;
+                } else if (e.key === "s" ) {
+                    y += 10;
+                } else if (e.key === "a") {
+                    x -= 10;
+                } else if (e.key === "d") {
+                    x += 10;
+                }
+
+                bsquare.style.left = x + 'px';
+                bsquare.style.top = y + 'px';
+            });
+
+            function follow() {
+                let dx = x - ex;
+                let dy = y - ey;
+
+                let dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 0) {
+                    ex += (dx / dist) * 2;
+                    ey += (dy / dist) * 2;
+                }
+
+                en.style.left = ex + "px";
+                en.style.top = ey + "px";
+
+                requestAnimationFrame(follow);
+            }
+
+            follow();
+            </script>
+    </body>
+</html>

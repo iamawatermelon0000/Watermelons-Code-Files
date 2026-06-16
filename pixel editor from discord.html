@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Pixel Editor</title>
+<style>
+body { font-family: Arial; }
+canvas { border: 2px solid #000; touch-action: none; }
+input { width: 60px; }
+textarea { width: 100%; height: 140px; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<h3>Pixel Editor Trắng–Đen</h3>
+
+Rộng: <input id="w" type="number" value="32" min="1" max="192">
+Cao: <input id="h" type="number" value="16" min="1" max="63">
+Zoom: <input id="z" type="number" value="10" min="2" max="30">
+
+<button onclick="create()">Tạo</button>
+<button onclick="clearGrid()">Xóa</button>
+<button onclick="exportHEX()">Xuất HEX</button>
+
+<br><br>
+<canvas id="cv"></canvas>
+
+<br><br>
+<textarea id="out" placeholder="HEX xuất ra ở đây"></textarea>
+
+<script>
+let cv = document.getElementById("cv");
+let ctx = cv.getContext("2d");
+
+let grid = [];
+let W = 32, H = 16, Z = 10;
+let dragging = false;
+let drawValue = 1;
+
+function create() {
+    W = +w.value;
+    H = +h.value;
+    Z = +z.value;
+
+    cv.width  = W * Z;
+    cv.height = H * Z;
+
+    grid = Array.from({ length: H }, () => Array(W).fill(0));
+    draw();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            if (grid[y][x]) {
+                ctx.fillStyle = "#000";
+                ctx.fillRect(x * Z, y * Z, Z, Z);
+            }
+            ctx.strokeStyle = "#ccc";
+            ctx.strokeRect(x * Z, y * Z, Z, Z);
+        }
+    }
+}
+
+function setPixel(e) {
+    let rect = cv.getBoundingClientRect();
+    let x = Math.floor((e.clientX - rect.left) / Z);
+    let y = Math.floor((e.clientY - rect.top) / Z);
+    if (x >= 0 && x < W && y >= 0 && y < H) {
+        grid[y][x] = drawValue;
+        draw();
+    }
+}
+
+/* CHUỘT */
+cv.addEventListener("mousedown", e => {
+    dragging = true;
+    let rect = cv.getBoundingClientRect();
+    let x = Math.floor((e.clientX - rect.left) / Z);
+    let y = Math.floor((e.clientY - rect.top) / Z);
+    if (x >= 0 && x < W && y >= 0 && y < H) {
+        drawValue = grid[y][x] ? 0 : 1;
+        grid[y][x] = drawValue;
+        draw();
+    }
+});
+cv.addEventListener("mousemove", e => {
+    if (dragging) setPixel(e);
+});
+window.addEventListener("mouseup", () => dragging = false);
+
+/* CẢM ỨNG */
+cv.addEventListener("touchstart", e => {
+    e.preventDefault();
+    dragging = true;
+    let t = e.touches[0];
+    let rect = cv.getBoundingClientRect();
+    let x = Math.floor((t.clientX - rect.left) / Z);
+    let y = Math.floor((t.clientY - rect.top) / Z);
+    drawValue = grid[y]?.[x] ? 0 : 1;
+    setPixel(t);
+});
+cv.addEventListener("touchmove", e => {
+    e.preventDefault();
+    if (dragging) setPixel(e.touches[0]);
+});
+cv.addEventListener("touchend", () => dragging = false);
+
+function clearGrid() {
+    grid.forEach(r => r.fill(0));
+    draw();
+}
+
+/* === XUẤT HEX: 1 DÒNG, TÁCH BYTE === */
+function exportHEX() {
+    let bytes = [];
+
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x += 16) {
+            let v = 0;
+            for (let b = 0; b < 16; b++) {
+                if (grid[y][x + b]) v |= 1 << (15 - b);
+            }
+
+            let hex = v.toString(16).toUpperCase().padStart(4, "0");
+            bytes.push(hex.slice(0, 2), hex.slice(2, 4));
+        }
+    }
+
+    out.value = bytes.join(" ");
+}
+
+create();
+</script>
+
+</body>
+</html>

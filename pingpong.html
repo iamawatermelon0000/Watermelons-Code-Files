@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+  <style>
+    #player {
+      width: 25px;
+      height: 180px;
+      background: lime;
+      position: absolute;
+
+      top: 0;
+      left: 0;
+    }
+
+    #enemy {
+      width: 25px;
+      height: 180px;
+      background: red;
+      position: absolute;
+
+      top: 0;
+      right: 0;
+    }
+
+    #ball {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: black;
+      position: absolute;
+    }
+
+    #printInfo {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+  </style>
+
+  <body>
+    <div id="player"></div>
+
+    <div id="ball"></div>
+
+    <div id="enemy"></div>
+
+    <p id="printInfo">Press ENTER to play, press ENTER again to pause.</p>
+
+    <script>
+      let player = document.getElementById("player");
+      let enemy = document.getElementById("enemy");
+      let ball = document.getElementById("ball");
+
+      let y = 0; // PlayerY
+      let ey = 0; // EnemyY
+
+      let by = window.innerHeight / 2, bx = window.innerWidth / 2; // BallY, BallX
+          ball.style.top = by + 'px';
+          ball.style.left = bx + 'px';      
+      let sx = 2, sy = 2 // Ball Speed X, Y
+
+      let int1;
+
+      let paused = true;
+
+      document.addEventListener("keydown", e => {
+          if (e.key === "w") y -= 10;
+          if (e.key === "s") y += 10;
+
+          if (e.key === "Enter") {
+            if (paused) {
+              paused = false;
+              moveBall();
+            } else {
+              paused = true;
+
+              if (int1) {
+                clearInterval(int1);
+                int1 = null;
+              }
+            }
+          }
+ 
+          player.style.top = y + 'px';
+      });
+
+      function moveBall() {
+
+        if (paused) return;
+        if (int1) clearInterval(int1);
+
+          by = window.innerHeight / 2, bx = window.innerWidth / 2;
+          ball.style.top = by + 'px';
+          ball.style.left = bx + 'px';
+          
+          int1 = setInterval(() => {
+            if (paused) {
+              clearInterval(int1);
+              int1 = null;
+              return;
+            }
+
+            if (bx + ball.offsetWidth >= window.innerWidth || bx <= 0) sx *= -1;
+            if (by + ball.offsetHeight >= window.innerHeight || by <= 0) sy *= -1;
+
+            if (by > ey) ey += 10;
+            if (by < ey) ey -= 10;
+
+              ball.style.top = by + 'px';
+              ball.style.left = bx + 'px';
+              
+              enemy.style.top = ey + 'px';
+
+              by += sy; 
+              bx += sx;
+
+              let ballRect = ball.getBoundingClientRect();
+              let enemyRect = enemy.getBoundingClientRect();
+              let playerRect = player.getBoundingClientRect();
+
+                  if (
+            ballRect.left < enemyRect.right && 
+            ballRect.right > enemyRect.left &&
+            ballRect.top < enemyRect.bottom && 
+            ballRect.bottom > enemyRect.top
+        ) {
+            bx = enemyRect.left - ball.offsetWidth;
+            ball.style.left = bx + 'px';
+            sx *= -1;
+        }
+
+                  if (
+            ballRect.left < playerRect.right && 
+            ballRect.right > playerRect.left &&
+            ballRect.top < playerRect.bottom && 
+            ballRect.bottom > playerRect.top
+        ) {
+            bx = playerRect.right;
+            ball.style.left = bx + 'px';
+            sx *= -1;
+        }
+
+
+          }, 10)
+      };
+      
+    </script>
+  </body>
+</html>

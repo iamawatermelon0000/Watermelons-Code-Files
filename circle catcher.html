@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <style>
+
+    #circle {
+      width: 50px;
+      height: 50px;
+      background: red;
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    body {
+      background: green;
+    }
+
+    #basket {
+      width: 100px;
+      height: 50px;
+      background: burlywood;
+      text-align: center;
+      position: absolute;
+    }
+
+  </style>
+
+  <body>
+    <p id="score">0</p>
+
+    <div id="circle"></div>
+    <div id="basket">Basket here</div>
+
+    <script>
+      let printScore = document.getElementById("score");
+      let curScore = parseInt(localStorage.getItem("score") || 0);
+
+      let collector = document.getElementById("basket");
+      let circle = document.getElementById("circle");
+
+      let x = 0;
+      let y = window.innerHeight - 70;
+      let posX = 0;
+      let posY = 0;
+      let fallTimer;
+
+      printScore.textContent = curScore;
+      collector.style.top = y + 'px';
+      collector.style.left = x + 'px';
+
+      document.addEventListener("keydown", e => {
+          if (e.key === "ArrowRight" || e.key === "d") {
+              x += 10;
+          } else if (e.key === "ArrowLeft" || e.key === "a") {
+              x -= 10;
+          }
+
+          const maxX = window.innerWidth - collector.offsetWidth;
+          x = Math.max(0, Math.min(x, maxX));
+          collector.style.left = x + 'px';
+      });
+
+      function intersects(rect1, rect2) {
+        return !(
+          rect1.right < rect2.left ||
+          rect1.left > rect2.right ||
+          rect1.bottom < rect2.top ||
+          rect1.top > rect2.bottom
+        );
+      }
+
+      function spawnCircle() {
+        posX = Math.floor(Math.random() * (window.innerWidth - circle.offsetWidth));
+        posY = 0;
+
+        circle.style.left = posX + "px";
+        circle.style.top = posY + "px";
+
+        clearInterval(fallTimer);
+
+        fallTimer = setInterval(() => {
+            posY += 4;
+            circle.style.top = posY + "px";
+
+            let collectorRect = collector.getBoundingClientRect();
+            let circleRect = circle.getBoundingClientRect();
+
+            if (intersects(collectorRect, circleRect)) {
+                clearInterval(fallTimer);
+                curScore++;
+                printScore.textContent = curScore;
+                saveScore();
+                spawnCircle();
+                return;
+            }
+
+            if (posY > window.innerHeight) {
+                clearInterval(fallTimer);
+                alert("You lost!");
+                curScore = 0;
+                printScore.textContent = curScore;
+                saveScore();
+                spawnCircle();
+            }
+        }, 16);
+      }
+
+      function saveScore() {
+        localStorage.setItem("score", curScore);
+      }
+
+      window.addEventListener("resize", () => {
+        y = window.innerHeight - 70;
+        collector.style.top = y + "px";
+
+        const maxX = window.innerWidth - collector.offsetWidth;
+        x = Math.max(0, Math.min(x, maxX));
+        collector.style.left = x + "px";
+      });
+
+      spawnCircle();
+    </script>
+  </body>
+</html>

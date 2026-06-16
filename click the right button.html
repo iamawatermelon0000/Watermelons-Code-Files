@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Choose the right way (inspired by @shwerl)</title>
+
+    <style>
+      #main {
+        display: flex;
+        gap: 250px;
+        justify-content: center;
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      button {
+        width: 250px;
+        height: 100px;
+
+        background: linear-gradient(to right, red, blue, lime);
+        color: white;
+
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 25px;
+      }
+
+      #printing {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-style: italic;
+        text-align: center;
+        border: 2px solid white;
+        font-size: 25px;
+        color: white;
+      }
+
+      body {
+        display: grid;
+        gap: 50px;
+        background: black;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <div id="printing">
+        <p id="answer">You're waiting. No decision made yet.</p>
+        <p id="hint">Hint:</p>
+    </div>
+
+    <div id="main">
+      <button type="button" onclick="btn1()">Turn left</button>
+      <button type="button" onclick="btn2()">Go straight</button>
+      <button type="button" onclick="btn3()">Turn right</button>
+    </div>
+
+    <script>
+      const hintOrder = [
+        "The path leads you into the eternal castle of remembrance. (->)",
+        "The path leads you into the bright future. (<-)",
+        "You dwell into the past. Nowhere, no nothing to find. (^)",
+        "It stares into the eternal abyss, wanting to go, but it's courage isn't enough. (>>)",
+        "Remember your choices. You will eventually find the right way."
+      ];
+      const ansOrder = [
+        "right",
+        "left",
+        "straight",
+        "right",
+        "right"
+      ];
+
+      let prHint = document.getElementById("hint");
+      let prAns = document.getElementById("answer");
+
+      let i = 0;
+      let currAns = ansOrder[i];
+      prHint.textContent = hintOrder[i];
+
+      function update() {
+        i++;
+
+        if (i >= hintOrder.length) i = hintOrder.length - 1;
+        currAns  = ansOrder[i];
+        prHint.textContent = hintOrder[i]
+      }
+
+      function btn1() {
+        if (!(currAns === ansOrder[1])) {
+          prAns.textContent = "The path lead you to a mysterious place. You were sent back by the land.";
+          update();
+        } else {
+          prAns.textContent = "You proceeded and reached yet another place with 3 paths...";
+          update();
+        }
+      }
+
+      function btn2() {
+        if (!(currAns === ansOrder[2])) {
+          prAns.textContent = "The path lead you to a mysterious place. You were sent back by the land.";
+          update();
+        } else {
+          prAns.textContent = "You proceeded and reached yet another place with 3 paths...";
+          update();
+        }
+      }
+      
+      function btn3() {
+
+        if (currAns === ansOrder[ansOrder.length - 1] && i === hintOrder.length - 1) {
+          prAns.textContent = "You've reached your destination. A calm place.";
+
+          setTimeout(() => {
+            window.location.replace("about:blank")
+          }, 2500);
+
+          return;
+        }
+
+        if (!(currAns === ansOrder[0]) && !(currAns === ansOrder[3])  && !(currAns === ansOrder[4])) {
+           prAns.textContent = "The path lead you to a mysterious place. You were sent back by the land.";
+          update();
+        } else {
+          prAns.textContent = "You proceeded and reached yet another place with 3 paths...";
+          update();
+        }
+      }
+    </script>
+
+  </body>
+</html>

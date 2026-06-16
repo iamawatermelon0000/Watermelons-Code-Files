@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <p id="result">Current score:</p>
+
+      <p id="en">Enemy's choice: none</p>
+      <p id="py">Your choice: none</p>
+
+      <input type="text" id="opt" placeholder="Enter your choice here...">
+      <button type="button" id="btn" onclick="send()">Send!</button>
+
+  </body>
+
+  <head>
+    <title>Rock _ Paper _ Scissor with AI</title>
+
+    <script>
+        let score = Number(localStorage.getItem("score") || 0);
+
+        let print = document.getElementById("result");
+        let printEn = document.getElementById("en");
+        let printPy = document.getElementById("py");
+
+        save();
+        print.textContent = `Current score: ${score}`;
+
+        function send() {
+
+        let option = document.getElementById("opt").value;
+
+        if (!option) {
+          alert("Please enter something.");
+          return;
+        }
+
+        let chosePyOpt = option.trim().toLowerCase();
+
+        let enOpt = [
+          "rock",
+          "paper",
+          "scissor"
+        ];
+
+        if (!enOpt.includes(chosePyOpt)) { 
+          alert("Invalid option."); 
+          return;
+        }
+
+        let choseEnOpt = enOpt[Math.floor(Math.random() * enOpt.length)];
+
+        printEn.textContent = `Enemy's Option: ${choseEnOpt}`;
+        printPy.textContent = `Your Option: ${chosePyOpt}`;
+
+        // startif
+
+        if (choseEnOpt === chosePyOpt) {
+            print.textContent = `Tie, current score: ${score += 0.5}`;
+        }
+
+        if (choseEnOpt === "rock" && chosePyOpt === "paper") {
+            print.textContent = `You won, current score: ${score += 1}`;
+        } else if (choseEnOpt === "rock" && chosePyOpt === "scissor") {
+            print.textContent = `You lost, current score: ${score -= 1}`
+        }
+
+        if (choseEnOpt === "paper" && chosePyOpt === "rock") {
+            print.textContent = `You lost, current score = ${score -= 1}`;
+        } else if (choseEnOpt === "paper" && chosePyOpt === "scissor") {
+            print.textContent = `You won, current score = ${score += 1}`;
+        }
+
+        if (choseEnOpt === "scissor" && chosePyOpt === "paper") {
+            print.textContent = `You lost, current score: ${score -= 1}`;
+        } else if (choseEnOpt === "scissor" && chosePyOpt === "rock") {
+            print.textContent = `You won, current score: ${score += 1}`;
+        }
+
+        // endif
+
+        save();
+        document.getElementById("opt").value = "";
+  }
+      function save() {
+        localStorage.setItem("score", score);
+      }
+
+      document.addEventListener("keydown", e => {
+          if (e.key === "?" || e.code === "Slash") {
+            let help = prompt("What do you want? (List of commands: rule; about; information.)")
+
+            if (!help) return;
+
+            if (help.trim().toLowerCase().includes("rule")) {
+                alert("Rules: you've never played rps in your life?")
+            } else if (help.trim().toLowerCase().includes("about")) {
+                alert("why are you askiung this....")
+            } else {
+                alert("made by @iamawatermelon0000")
+            }
+          }
+
+          if (e.key === "Enter") send();
+      })
+
+      window.addEventListener("resize", () => {
+          alert("debugging?");
+          debugger;
+      })
+
+    </script>
+
+    <style>
+
+      #opt {
+        margin: 5px;
+        font-style: italic;
+        font-family: 'Courier New', Courier, monospace;
+        width: 250px;
+        height: 50px;
+        font-size: 16px;
+      }
+
+      #btn {
+        background: linear-gradient(to right, #ff0000, #ff8900, #fffb00, #0080ff, #0d00ff);
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        width: 250px;
+        height: 50px;
+      }
+
+      body {
+        background: linear-gradient(to right, #2200ff, #00a6ff, #c300ff, #9000ff);
+        font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-size: 25px;
+        margin: -5 px;
+      }
+      
+    </style>
+  </head>
+</html>

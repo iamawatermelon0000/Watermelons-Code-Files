@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <title title="easter egg pull">This button does nothing.</title>
+
+    <style>
+      body {
+        transition: transform 0.5s ease;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      button {
+        width: 250px;
+        height: 75px;
+
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 20px;
+      }
+    </style>
+
+  </head>
+  <p>this will secretly download a virus on your pc and fry your cpu</p>
+
+  <button type="button" onclick="start()" title="it actually does something, see it in the console">Start</button>
+
+  <script>
+
+      let iFry;
+      let iRotate;
+
+      let err;
+      let deg = 0;
+
+      let pr;
+      let prEx;
+
+      const efs = [
+        "fry cpu",
+        "nothing",
+        "explode",
+        "rotate",
+        "escape",
+        "virus"
+      ];
+
+    function start() {
+
+      let e = efs[Math.floor(Math.random() * efs.length)];
+
+      if (e === "fry cpu") {
+
+        if (!iFry) {
+
+          alert("i see a dead cpu...");
+
+            for (let i = 0; i <= 1e+21; i++) {
+              let res = i
+                Math.sqrt(i);
+                console.warn(`Calculating: ${i}`);
+                console.warn(res);
+
+                console.log("%cCPU FRIER RUNNING", "color: red; font-family: calibri; font-weight: bold; font-style: italic;");
+                console.warn("GET REKT");
+                err = new Error("CPU FRIED");
+                console.log(err);
+            }
+
+        }
+      } else if (e === "explode") {
+          document.body.innerHTML = "";
+          document.body.style.background = "black";
+
+          setTimeout(() => {
+            document.body.style.background = "white";
+
+            prEx = document.createElement("h1");
+            prEx.textContent = "page exploded :(";
+            prEx.style.textAlign = "center";
+
+            document.body.appendChild(prEx);
+
+            setTimeout(() => {
+              location.reload();
+            }, 2500);
+
+          }, 2500);
+
+      } else if (e === "rotate") {
+          
+        if (!iRotate) {
+
+          iRotate = setInterval(() => {
+              document.body.style.transform = `rotate(${deg += 15}deg)`;
+          }, 16);
+
+          setTimeout(() => {
+            if (iRotate) clearInterval(iRotate)
+          }, 5000);
+        };
+
+      } else if (e === "escape") {
+        alert("HEY WHO ALLOWED U TO ESCAPE >:(")
+        window.location.href = "about:blank";
+
+      } else if (e === "virus") {
+
+        document.body.innerHTML = "";
+        document.body.style.background = "red";
+
+        pr = document.createElement("h1");
+        pr.textContent = "GET HACKED HAHAHAHAHAHA >:)";
+        pr.style.color = "white";
+        pr.style.textAlign = "center";
+
+        document.body.appendChild(pr);
+
+      } else {
+        alert("You got lucky, nothing happened");
+      }
+    }
+  </script>
+</html>

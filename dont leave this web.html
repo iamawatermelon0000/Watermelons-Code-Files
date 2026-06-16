@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title msg="what are you doing here" title="Easter egg found!">Do not leave this web.</title>
+
+    <style>
+      body {
+        background: black;
+        display: grid;
+        place-items: center;
+        height: 98vh;
+      }
+
+      #main {
+        color: white;
+        text-align: center;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-style: italic;
+      }
+
+      #sub {
+        color: black;
+        border: 4px solid black;
+        display: inline-block;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        font-style: italic;
+        text-align: center;
+      }
+
+      #help {
+        font-size: 10px;
+        color: red;
+        border: 2px solid white;
+      }
+    </style>
+
+  </head>
+
+  <body>
+  <div id="help">Try pressing the combinations!!!!!</div>
+
+  <p id="main">Don't leave this web.</p>
+
+  <p id="sub">The limbo. Do you feel happy that you've escaped?</p>
+
+  <script>
+
+    let print = document.createElement("h2");
+    let print2 = document.getElementById("help");
+    let count = 0;
+
+     document.addEventListener("keydown", e => {
+    if (e.ctrlKey 
+     || e.altKey 
+     || e.metaKey 
+     || e.key === "Escape" 
+     || e.key === "Tab" 
+     || e.key === "Shift") {
+
+       alert("Why...");
+        alert("I just want someone to be here with me..");
+        alert("I'm lonely, always lonely...");
+        alert("Please.... stay with me.... just 10 seconds....");
+
+        count++;
+        e.preventDefault();
+
+        if (count >= 2) {
+          alert("You will pay for it.")
+          window.location.href = 
+                "https://www.youtube.com/watch?v=XfELJU1mRMg&msockid=4b1c3dfd300411f1877583a149ed2ca0";
+        }
+
+    }
+});
+
+
+    setTimeout(() => {
+      alert("Okay.... it's enough now...");
+      alert("Thank you for staying with me...");
+
+      print2.textContent = "";
+      document.body.style.background = "white";
+
+      setTimeout(() => {
+
+        print.textContent = "Redirecting you to a place that you can rest..."
+        document.body.appendChild(print);
+
+        setTimeout(() => {
+        window.location.href = "https://www.youtube.com/watch?v=8b-WwN4H7lE";
+        }, 2000);
+
+      }, 5000);
+      
+    }, 10000);
+    </script>
+  </body>
+</html>

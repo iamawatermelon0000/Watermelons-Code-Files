@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            button {
+                width: 150px;
+                height: 150px;
+                background: red;
+                font-family: 'Times New Roman', Times, serif;
+                margin: 10px;
+        ;
+            }
+
+            #highClick {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+            }
+        </style>
+        <title>How fast can you click in .. seconds?</title>
+    </head>
+    <body>
+        
+        
+        <h1>How fast can you click in ...s?</h1>
+        
+        <div>Select time here:
+        <select id="time">
+            <option>5s</option>
+            <option>10s</option>
+            <option>15s</option>
+            <option>20s</option>
+            <option>30s</option>
+        </select>
+
+        </div>
+        <button type="button" id="btn" onclick="start()">Start HERE!</button>
+        <button type="button" onclick="refresh()">Refresh HERE!</button>
+        <div>
+
+        <p id="printClick">Your total clicks:</p>
+        <p id="printTime">Your time left:</p>
+        </div>
+
+        <p id="total"></p>
+
+        <script>
+            let click = 0;
+            
+            let time = 0;
+            let totalTime = 0;
+
+            let started = false;
+            let int = null;
+
+            const button = document.getElementById("btn");
+            const select = document.getElementById("time");
+
+            const printTime = document.getElementById("printTime");
+            const printClick = document.getElementById("printClick");
+            const printTotal = document.getElementById("total");
+
+            function start() {
+
+                if (!started) {
+                    document.body.style.background = "lime";
+
+                    started = true;
+
+                    click = 0;
+                    time = parseInt(select.value);
+                    totalTime = time;
+
+                    int = setInterval(() => {
+                         time -= 1;
+
+                        printTime.textContent = `Your time left: ${time}`;
+                        printClick.textContent = `Your clicks: ${click}`;
+
+                        if (time <= 0) {
+                            clearInterval(int);
+                            button.disabled = true;
+
+                            printTotal.textContent = `You clicked ${click} time(s) in ${totalTime}s!`;
+
+                            alert("Time over!");
+                            document.body.style.background = "red";
+
+                            return;
+                        }
+
+                    }, 1000);
+                }
+
+                if (time > 0) {
+                    click++;
+                };
+            }
+
+            function refresh() {
+
+                if (int) clearInterval(int);
+                int = null;
+
+                started = false;
+
+                button.disabled = false;
+
+                time = 0;
+                totalTime = 0;
+                click = 0;
+
+                document.body.style.background = "white";
+
+                 printClick.textContent = `Your clicks: ${click}`;
+                 printTime.textContent = `Your time left: ${time}`;
+            }
+</script>
+    </body>
+</html>

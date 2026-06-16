@@ -1,0 +1,3883 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <title>CAR RACING GAME</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+        font-family: "Arial Black", sans-serif;
+      }
+      #game-ui {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 100;
+      }
+      .hud-gauge {
+        position: absolute;
+        bottom: 40px;
+        right: 40px;
+        text-align: right;
+      }
+      #speedometer {
+        font-size: 80px;
+        color: #00ffff;
+        font-style: italic;
+        text-shadow: 0 0 20px #00ffff;
+      }
+      #nitro-bar {
+        width: 400px;
+        height: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+      #nitro-level {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, #ff00ff, #00ffff);
+        transition: width 0.1s;
+      }
+      #rank {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        font-size: 40px;
+        color: #ff00ff;
+      }
+      /* Fix ID cho đúng với Class RaceStarter */
+      #countdown-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 150px;
+        color: #0ff;
+        text-shadow: 0 0 30px #0ff;
+        display: none;
+        font-weight: bold;
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+      }
+      #start-screen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1500;
+        pointer-events: auto;
+      }
+      #crash-screen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 0, 0, 0.4);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 1000;
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-ui">
+      <div id="rank">RANK: 1 / 15</div>
+
+      <div id="countdown-overlay"></div>
+
+      <div id="start-screen">
+        <h1
+          style="
+            color: #0ff;
+            font-size: 50px;
+            cursor: pointer;
+            text-align: center;
+          "
+          onclick="
+            document.getElementById('start-screen').style.display = 'none';
+            if (typeof startAsphaltGame === 'function') startAsphaltGame();
+          "
+        >
+          CAR RACING<br /><span style="font-size: 20px; color: #fff"
+            >CLICK TO RACE</span
+          >
+        </h1>
+      </div>
+
+      <div class="hud-gauge">
+        <div id="speedometer">0</div>
+        <div style="color: white; font-size: 20px">KM / H</div>
+        <div id="nitro-bar"><div id="nitro-level"></div></div>
+      </div>
+    </div>
+
+    <div id="crash-screen">
+      <h1 style="font-size: 70px; color: white; text-shadow: 0 0 30px #000">
+        TOTAL DESTRUCTION
+      </h1>
+      <button
+        onclick="location.reload()"
+        style="
+          padding: 20px 60px;
+          font-size: 25px;
+          background: #0ff;
+          cursor: pointer;
+          border: none;
+          font-weight: bold;
+        "
+      >
+        HỒI SINH!
+      </button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+      /** * MODULE 1: CONSTANTS & GLOBALS */
+      const GAME_CONFIG = {
+        PLAYER_MAX_SPEED: 4.5,
+        PLAYER_ACCEL: 0.08,
+        PLAYER_FRICTION: 0.985,
+        PLAYER_STEER_SPEED: 0.7,
+        NITRO_MULTIPLIER: 2.2,
+        NITRO_DRAIN: 0.6,
+        NITRO_REGEN: 0.15,
+        BOT_COUNT: 14,
+        OBSTACLE_DENSITY: 0.08,
+        CHUNK_SIZE: 400,
+        ROAD_WIDTH: 55,
+        LANE_COUNT: 5,
+        GRAVITY: -0.05,
+        COLLISION_RADIUS: 2.8,
+        FOV_NORMAL: 70,
+        FOV_NITRO: 105,
+        COLOR_PRIMARY: 0x00ffff,
+        COLOR_BOTS: [0xff0055, 0xffff00, 0x00ff00, 0xffffff, 0xff8800],
+      };
+
+      let scene, camera, renderer, clock;
+
+      var scoreManager = { score: 0, update: function () {} };
+      var soundManager = {
+        update: function () {},
+        startEngine: function () {},
+      };
+
+      let playerVehicle,
+        botManager,
+        worldManager,
+        collisionSystem,
+        particleSystem;
+      let speed = 0,
+        nitro = 100,
+        isNitroActive = false,
+        distance = 0,
+        isDead = false;
+      let keys = { w: false, a: false, s: false, d: false, space: false };
+      let frameCount = 0;
+
+      /** * MODULE 2: INITIALIZATION ENGINE */
+      function bootstrap() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020205);
+        scene.fog = new THREE.FogExp2(0x020205, 0.005);
+
+        camera = new THREE.PerspectiveCamera(
+          GAME_CONFIG.FOV_NORMAL,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          2000,
+        );
+
+        renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          logarithmicDepthBuffer: true,
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        document.body.appendChild(renderer.domElement);
+
+        clock = new THREE.Clock();
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+      }
+
+      /** * MODULE 3: PLAYER VEHICLE CLASS
+       * Hệ thống điều khiển siêu xe - Đã fix Nitro tự do & Rẽ mượt
+       */
+      class PlayerVehicle {
+        constructor() {
+          this.mesh = new THREE.Group();
+          this.createGeometry();
+          this.position = new THREE.Vector3(0, 0, 0);
+          this.rotation = new THREE.Euler(0, 0, 0);
+          this.velocity = new THREE.Vector3(0, 0, 0);
+          this.tiltAngle = 0;
+          this.shakeAmount = 0;
+          scene.add(this.mesh);
+
+          // Đảm bảo có biến nitro nếu chưa khai báo
+          if (typeof nitro === "undefined") window.nitro = 100;
+        }
+
+        createGeometry() {
+          const bodyGeo = new THREE.BoxGeometry(2.4, 0.7, 5);
+          const bodyMat = new THREE.MeshPhongMaterial({
+            color: GAME_CONFIG.COLOR_PRIMARY,
+            shininess: 100,
+            specular: 0x555555,
+          });
+          const body = new THREE.Mesh(bodyGeo, bodyMat);
+          body.castShadow = true;
+          this.mesh.add(body);
+
+          const glassGeo = new THREE.BoxGeometry(1.6, 0.5, 1.8);
+          const glassMat = new THREE.MeshPhongMaterial({
+            color: 0x111111,
+            transparent: true,
+            opacity: 0.8,
+          });
+          const cockpit = new THREE.Mesh(glassGeo, glassMat);
+          cockpit.position.set(0, 0.5, 0.4);
+          this.mesh.add(cockpit);
+
+          const lightGeo = new THREE.PlaneGeometry(0.8, 0.2);
+          const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+          const l1 = new THREE.Mesh(lightGeo, lightMat);
+          l1.position.set(0.7, 0, -2.51);
+          const l2 = l1.clone();
+          l2.position.set(-0.7, 0, -2.51);
+          this.mesh.add(l1, l2);
+
+          const wingGeo = new THREE.BoxGeometry(2.4, 0.1, 0.8);
+          const wing = new THREE.Mesh(wingGeo, bodyMat);
+          wing.position.set(0, 0.6, 2.2);
+          this.mesh.add(wing);
+
+          this.wheels = [];
+          const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 16);
+          const wheelMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+          const wheelPositions = [
+            [-1.1, -0.1, -1.6],
+            [1.1, -0.1, -1.6],
+            [-1.1, -0.1, 1.6],
+            [1.1, -0.1, 1.6],
+          ];
+          wheelPositions.forEach((p) => {
+            const w = new THREE.Mesh(wheelGeo, wheelMat);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(...p);
+            this.mesh.add(w);
+            this.wheels.push(w);
+          });
+        }
+
+        update(keys, dt) {
+          if (typeof isDead !== "undefined" && isDead) return;
+
+          // 1. XỬ LÝ NITRO (Đã fix - Không phụ thuộc phím W)
+          // Chỉ cần có phím Space (nitro) và còn năng lượng là
+          isNitroActive = !!(keys.nitro && nitro > 0);
+
+          let targetSpeed = keys.forward
+            ? GAME_CONFIG.PLAYER_MAX_SPEED
+            : keys.backward
+              ? -1
+              : 0.5;
+
+          if (isNitroActive) {
+            // Ép targetSpeed vọt lên mức siêu nhanh
+            targetSpeed =
+              GAME_CONFIG.PLAYER_MAX_SPEED *
+              (GAME_CONFIG.NITRO_MULTIPLIER || 1.6);
+            nitro -= GAME_CONFIG.NITRO_DRAIN || 0.8;
+            this.shakeAmount = 0.15; // Rung xe mạnh hơn
+            if (nitro < 0) nitro = 0;
+          } else {
+            // Hồi phục năng lượng Nitro từ từ khi không dùng
+            if (typeof nitro !== "undefined" && nitro < 100)
+              nitro += GAME_CONFIG.NITRO_REGEN || 0.15;
+            this.shakeAmount = 0;
+          }
+
+          // Nội suy tốc độ để tăng/giảm mượt mà
+          speed = THREE.MathUtils.lerp(
+            speed,
+            targetSpeed,
+            GAME_CONFIG.PLAYER_ACCEL || 0.1,
+          );
+
+          // 2. Xử lý Rẽ trái/phải
+          const steerFactor = (speed + 20) / 40;
+          if (
+            keys.left &&
+            this.mesh.position.x > -GAME_CONFIG.ROAD_WIDTH / 2 + 3
+          ) {
+            this.mesh.position.x -=
+              GAME_CONFIG.PLAYER_STEER_SPEED * steerFactor;
+            this.tiltAngle = THREE.MathUtils.lerp(this.tiltAngle, 0.15, 0.1);
+          } else if (
+            keys.right &&
+            this.mesh.position.x < GAME_CONFIG.ROAD_WIDTH / 2 - 3
+          ) {
+            this.mesh.position.x +=
+              GAME_CONFIG.PLAYER_STEER_SPEED * steerFactor;
+            this.tiltAngle = THREE.MathUtils.lerp(this.tiltAngle, -0.15, 0.1);
+          } else {
+            this.tiltAngle = THREE.MathUtils.lerp(this.tiltAngle, 0, 0.1);
+          }
+
+          // 3. Cập nhật vị trí và xoay bánh xe
+          this.mesh.position.z -= speed * 60 * dt;
+          this.mesh.rotation.z = this.tiltAngle;
+          this.mesh.rotation.y = this.tiltAngle * 0.5;
+
+          // Hiệu ứng rung xe khi dùng Nitro hoặc chạy nhanh
+          if (this.shakeAmount > 0) {
+            this.mesh.position.x += (Math.random() - 0.5) * this.shakeAmount;
+            this.mesh.position.y = (Math.random() - 0.5) * this.shakeAmount;
+          } else {
+            this.mesh.position.y = 0;
+          }
+
+          if (this.wheels) {
+            this.wheels.forEach((w) => {
+              w.rotation.x -= speed * 0.5;
+            });
+          }
+
+          this.position.copy(this.mesh.position);
+        }
+      }
+      /** * MODULE 4: BOT VEHICLE CLASS
+       *  đây là những đối thủ mà cần phải vượt qua
+       */
+      class BotVehicle {
+        constructor(id) {
+          this.id = id;
+          this.mesh = new THREE.Group();
+          this.speed = 0.5 + Math.random() * 2.5; // Tốc độ ngẫu nhiên
+          this.lane = Math.floor(Math.random() * GAME_CONFIG.LANE_COUNT);
+          this.createGeometry();
+          scene.add(this.mesh);
+          this.reset();
+        }
+
+        createGeometry() {
+          const color =
+            GAME_CONFIG.COLOR_BOTS[
+              Math.floor(Math.random() * GAME_CONFIG.COLOR_BOTS.length)
+            ];
+
+          // Thân xe Bot
+          const body = new THREE.Mesh(
+            new THREE.BoxGeometry(2.4, 0.9, 4.8),
+            new THREE.MeshPhongMaterial({ color: color, shininess: 30 }),
+          );
+          this.mesh.add(body);
+
+          // Cửa kính xe Bot
+          const glass = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 0.4, 1.5),
+            new THREE.MeshBasicMaterial({ color: 0x000000 }),
+          );
+          glass.position.set(0, 0.5, 0.2);
+          this.mesh.add(glass);
+
+          // Đèn hậu màu đỏ (để  dễ quan sát từ xa
+          const tailLightGeo = new THREE.BoxGeometry(0.6, 0.2, 0.1);
+          const tailLightMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+          const tl1 = new THREE.Mesh(tailLightGeo, tailLightMat);
+          tl1.position.set(0.7, 0, 2.41);
+          const tl2 = tl1.clone();
+          tl2.position.set(-0.7, 0, 2.41);
+          this.mesh.add(tl1, tl2);
+        }
+
+        reset(zOffset = -500) {
+          // Đặt Bot ở một làn đường ngẫu nhiên phía trước
+          const xPos = (this.lane - 2) * (GAME_CONFIG.ROAD_WIDTH / 5);
+          const zPos = playerVehicle
+            ? playerVehicle.mesh.position.z + zOffset - Math.random() * 500
+            : zOffset;
+          this.mesh.position.set(xPos, 0.5, zPos);
+          this.speed = 1.0 + Math.random() * 2.0;
+        }
+
+        update(dt, playerZ) {
+          // Di chuyển Bot
+          this.mesh.position.z -= this.speed * 60 * dt;
+
+          // Nếu  đã bỏ xa Bot quá 150m phía sau, đưa Bot lên phía trước l
+          if (this.mesh.position.z > playerZ + 150) {
+            this.reset(-800);
+          }
+        }
+      }
+      /** * MODULE 5: BOT MANAGER
+       * Quản lý danh sách toàn bộ đối thủ trong game
+       */
+      class BotManager {
+        constructor() {
+          this.bots = [];
+          for (let i = 0; i < GAME_CONFIG.BOT_COUNT; i++) {
+            this.bots.push(new BotVehicle(i));
+          }
+        }
+
+        update(dt, playerZ) {
+          this.bots.forEach((bot) => bot.update(dt, playerZ));
+        }
+      }
+      /** * MODULE 6: OBSTACLE MANAGER
+       *  đây là nơi t ra các chướng ng vật cố định trên đường
+       */
+      class ObstacleManager {
+        constructor() {
+          this.obstacles = [];
+          this.poolSize = 25; // Số lượng vật cản tối đa cùng lúc
+          for (let i = 0; i < this.poolSize; i++) {
+            this.createObstacle();
+          }
+        }
+
+        createObstacle() {
+          const geo = new THREE.BoxGeometry(4, 3, 2);
+          const mat = new THREE.MeshPhongMaterial({
+            color: 0xff4400,
+            emissive: 0x551100,
+            shininess: 10,
+          });
+          const obs = new THREE.Mesh(geo, mat);
+          obs.position.set(
+            (Math.random() - 0.5) * (GAME_CONFIG.ROAD_WIDTH - 10),
+            1.5,
+            -Math.random() * 2000,
+          );
+          scene.add(obs);
+          this.obstacles.push(obs);
+        }
+
+        update(playerZ) {
+          this.obstacles.forEach((obs) => {
+            // Nếu vật cản trôi về sau , con sẽ đẩy nó lên phía trước
+            if (obs.position.z > playerZ + 100) {
+              obs.position.z = playerZ - 800 - Math.random() * 400;
+              obs.position.x =
+                (Math.random() - 0.5) * (GAME_CONFIG.ROAD_WIDTH - 10);
+            }
+          });
+        }
+      }
+      /** * MODULE 7: WORLD & ROAD MANAGER
+       * Quản lý các đo đường đua nối đuôi nhau vô tận
+       */
+      class WorldManager {
+        constructor() {
+          this.chunks = [];
+          this.totalChunks = 6;
+          for (let i = 0; i < this.totalChunks; i++) {
+            this.createChunk(i * -GAME_CONFIG.CHUNK_SIZE);
+          }
+        }
+
+        createChunk(z) {
+          const chunk = new THREE.Group();
+
+          // Mặt đường Asphalt
+          const roadGeo = new THREE.PlaneGeometry(
+            GAME_CONFIG.ROAD_WIDTH,
+            GAME_CONFIG.CHUNK_SIZE,
+          );
+          const roadMat = new THREE.MeshPhongMaterial({
+            color: 0x151515,
+            shininess: 20,
+          });
+          const road = new THREE.Mesh(roadGeo, roadMat);
+          road.rotation.x = -Math.PI / 2;
+          chunk.add(road);
+
+          // Vh kẻ đường Neon (Asphalt Style)
+          const grid = new THREE.GridHelper(
+            GAME_CONFIG.CHUNK_SIZE,
+            10,
+            0x00ffff,
+            0x222222,
+          );
+          grid.rotation.z = Math.PI / 2;
+          grid.position.y = 0.05;
+          chunk.add(grid);
+
+          // Rào chắn hai bên rực rỡ
+          const railGeo = new THREE.BoxGeometry(1, 4, GAME_CONFIG.CHUNK_SIZE);
+          const railMat = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+          const leftRail = new THREE.Mesh(railGeo, railMat);
+          leftRail.position.set(-GAME_CONFIG.ROAD_WIDTH / 2, 1, 0);
+          const rightRail = leftRail.clone();
+          rightRail.position.set(GAME_CONFIG.ROAD_WIDTH / 2, 1, 0);
+          chunk.add(leftRail, rightRail);
+
+          chunk.position.z = z;
+          scene.add(chunk);
+          this.chunks.push(chunk);
+        }
+
+        update(playerZ) {
+          this.chunks.forEach((chunk) => {
+            // Cơ chế Endless: Đưa đo đường cũ lên trước đầu
+            if (chunk.position.z > playerZ + GAME_CONFIG.CHUNK_SIZE) {
+              chunk.position.z -= GAME_CONFIG.CHUNK_SIZE * this.totalChunks;
+            }
+          });
+        }
+      }
+      /** * MODULE 8: COLLISION SYSTEM
+       *  đây là nơi kiểm tra va ch và xử lý hậu quả khi  gặp tai nạn
+       */
+      class CollisionSystem {
+        constructor() {
+          this.hitboxRadius = GAME_CONFIG.COLLISION_RADIUS;
+        }
+
+        check(player, bots, obstacles) {
+          if (isDead) return;
+
+          const playerPos = player.mesh.position;
+
+          // 1. Kiểm tra va ch với xe Bot
+          bots.forEach((bot) => {
+            const botPos = bot.mesh.position;
+            const distanceX = Math.abs(playerPos.x - botPos.x);
+            const distanceZ = Math.abs(playerPos.z - botPos.z);
+
+            // Nếu khoảng cách quá gần theo cả 2 trục
+            if (distanceX < 2.2 && distanceZ < 4.0) {
+              this.triggerCrash("BOT COLLISION");
+            }
+          });
+
+          // 2. Kiểm tra va ch với vật cản cố định
+          obstacles.forEach((obs) => {
+            const obsPos = obs.position;
+            const distanceX = Math.abs(playerPos.x - obsPos.x);
+            const distanceZ = Math.abs(playerPos.z - obsPos.z);
+
+            if (distanceX < 3.0 && distanceZ < 3.0) {
+              this.triggerCrash("OBSTACLE IMPACT");
+            }
+          });
+
+          // 3. Kiểm tra va ch rào chắn hai bên đường
+          if (Math.abs(playerPos.x) > GAME_CONFIG.ROAD_WIDTH / 2 - 1.5) {
+            this.triggerCrash("WALL SMASH");
+          }
+        }
+
+        triggerCrash(type) {
+          isDead = true;
+          speed = 0;
+          console.log("bị tai nạn: " + type);
+
+          // Hiển thị màn hình thua cuộc
+          document.getElementById("crash-screen").style.display = "flex";
+
+          // Hiệu ứng rung camera mh (Screen Shake)
+          this.applyScreenShake();
+        }
+
+        applyScreenShake() {
+          const shakeIntensity = 0.5;
+          const originalPos = camera.position.clone();
+
+          let shakeCount = 0;
+          const shakeInterval = setInterval(() => {
+            camera.position.x += (Math.random() - 0.5) * shakeIntensity;
+            camera.position.y += (Math.random() - 0.5) * shakeIntensity;
+            shakeCount++;
+
+            if (shakeCount > 10) {
+              clearInterval(shakeInterval);
+              camera.position.copy(originalPos);
+            }
+          }, 30);
+        }
+      }
+      /** * MODULE 9: PARTICLE SYSTEM
+       *  đây là hệ thống t hiệu ứng khói lửa rực rỡ cho xe  bạn
+       */
+      class ParticleSystem {
+        constructor() {
+          this.particles = [];
+          this.particleGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+          this.nitroMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+          this.smokeMat = new THREE.MeshBasicMaterial({
+            color: 0x555555,
+            transparent: true,
+            opacity: 0.5,
+          });
+        }
+
+        emit(position, type) {
+          const mat = type === "nitro" ? this.nitroMat : this.smokeMat;
+          const p = new THREE.Mesh(this.particleGeo, mat);
+
+          p.position.copy(position);
+          p.userData = {
+            velocity: new THREE.Vector3(
+              (Math.random() - 0.5) * 0.1,
+              Math.random() * 0.1,
+              0.2 + Math.random() * 0.2,
+            ),
+            life: 1.0, // Tuổi thọ  h
+          };
+
+          scene.add(p);
+          this.particles.push(p);
+        }
+
+        update(dt) {
+          for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.position.add(p.userData.velocity);
+            p.userData.life -= dt * 2;
+            p.scale.multiplyScalar(0.95); // H nhỏ dần rồi biến mất
+
+            if (p.userData.life <= 0) {
+              scene.remove(p);
+              this.particles.splice(i, 1);
+            }
+          }
+        }
+
+        createNitroEffect(pos) {
+          // Phụt 3 h cùng lúc cho nó rực rỡ
+          for (let i = 0; i < 3; i++) {
+            const offset = new THREE.Vector3(
+              (Math.random() - 0.5) * 0.5,
+              -0.2,
+              2,
+            );
+            this.emit(pos.clone().add(offset), "nitro");
+          }
+        }
+      }
+      /** * MODULE 10: CAMERA CONTROLLER
+       *  đây là hệ thống điều khiển góc nhìn đuổi theo xe   một cách nghệ thuật
+       */
+      class CameraController {
+        constructor() {
+          this.offset = new THREE.Vector3(0, 5, 12); // Khoảng cách mặc định sau xe
+          this.lookAtOffset = new THREE.Vector3(0, 2, -10); // Điểm camera nhìn tới phía trước xe
+          this.currentFOV = GAME_CONFIG.FOV_NORMAL;
+        }
+
+        update(player, dt) {
+          if (!player) return;
+
+          // 1. Tính toán vị trí đích  camera dựa trên vị trí xe
+          const targetPosition = new THREE.Vector3(
+            player.mesh.position.x * 0.5, // Camera hơi lệch tâm để nhìn bao quát hơn
+            this.offset.y + speed * 0.5, // Nâng camera lên cao khi ch nhanh
+            player.mesh.position.z + this.offset.z + (isNitroActive ? 2 : 0), // Lùi xa hơn khi Nitro
+          );
+
+          // 2. Di chuyển camera mượt mà tới vị trí đích (Smooth Damp)
+          camera.position.lerp(targetPosition, 0.1);
+
+          // 3. Camera luôn nhìn về phía trước xe
+          const lookAtPos = new THREE.Vector3(
+            player.mesh.position.x,
+            player.mesh.position.y + this.lookAtOffset.y,
+            player.mesh.position.z + this.lookAtOffset.z,
+          );
+          camera.lookAt(lookAtPos);
+
+          // 4. Hiệu ứng Dynamic FOV (Bẻ cong không gian khi Nitro
+          const targetFOV = isNitroActive
+            ? GAME_CONFIG.FOV_NITRO
+            : GAME_CONFIG.FOV_NORMAL;
+          this.currentFOV = THREE.MathUtils.lerp(
+            this.currentFOV,
+            targetFOV,
+            0.08,
+          );
+          camera.fov = this.currentFOV;
+          camera.updateProjectionMatrix();
+
+          // 5. Rung nhẹ camera khi đ tốc độ cao để tăng cảm giác "phê"
+          if (speed > 3) {
+            camera.position.x += (Math.random() - 0.5) * (speed * 0.02);
+            camera.position.y += (Math.random() - 0.5) * (speed * 0.02);
+          }
+        }
+      }
+      /** * MODULE 11: LIGHTING MANAGER
+       *  đây là hệ thống ánh sáng đêm đô thị giúp xe   lung linh hơn
+       */
+      class LightingManager {
+        constructor() {
+          this.lights = [];
+          this.setupGlobalLights();
+          this.setupStreetLights();
+        }
+
+        setupGlobalLights() {
+          // Ánh sáng nền huyền ảo
+          const ambientLight = new THREE.AmbientLight(0x4040ff, 0.5); // Màu xanh đêm nhẹ
+          scene.add(ambientLight);
+
+          // Ánh sáng chính t bóng đổ và phản chiếu kim lo
+          this.sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+          this.sunLight.position.set(50, 100, 50);
+          this.sunLight.castShadow = true;
+          scene.add(this.sunLight);
+        }
+
+        setupStreetLights() {
+          // T một mảng các đèn đường ch dọc theo đường đua
+          for (let i = 0; i < 10; i++) {
+            const streetLight = new THREE.PointLight(0x00ffff, 2, 50);
+            streetLight.position.set(
+              i % 2 === 0 ? -25 : 25, // Đặt hai bên đường
+              10,
+              i * -100,
+            );
+            scene.add(streetLight);
+            this.lights.push(streetLight);
+          }
+        }
+
+        update(playerZ) {
+          // Cập nhật vị trí mặt trời theo xe để bóng đổ luôn chuẩn
+          this.sunLight.position.z = playerZ + 50;
+
+          // Tái sử dụng đèn đường (Endless Lighting)
+          this.lights.forEach((light) => {
+            if (light.position.z > playerZ + 50) {
+              light.position.z -= 1000; // Đưa đèn lên phía trước
+              // Đổi màu ngẫu nhiên cho rực rỡ đúng chất Asphalt
+              const colors = [0x00ffff, 0xff00ff, 0xffff00];
+              light.color.setHex(
+                colors[Math.floor(Math.random() * colors.length)],
+              );
+            }
+          });
+        }
+      }
+      /** * MODULE 12: SOUND MANAGER (WEB AUDIO API)
+       *  tự dùng code để t ra âm thanh động cơ mà không cần file mp3
+       */
+      class SoundManager {
+        constructor() {
+          this.audioCtx = new (
+            window.AudioContext || window.webkitAudioContext
+          )();
+          this.oscillator = null;
+          this.gainNode = this.audioCtx.createGain();
+          this.gainNode.connect(this.audioCtx.destination);
+          this.gainNode.gain.value = 0.1; // Âm lượng vừa phải cho
+          this.isPlaying = false;
+        }
+
+        startEngine() {
+          if (this.isPlaying) return;
+          this.oscillator = this.audioCtx.createOscillator();
+          this.oscillator.type = "sawtooth"; // Tiếng gầm đặc trưng  siêu xe
+          this.oscillator.frequency.setValueAtTime(
+            50,
+            this.audioCtx.currentTime,
+          );
+          this.oscillator.connect(this.gainNode);
+          this.oscillator.start();
+          this.isPlaying = true;
+        }
+
+        update(currentSpeed, isNitro) {
+          if (!this.isPlaying) return;
+
+          // Tần số âm thanh tỉ lệ thuận với tốc độ xe
+          const baseFreq = 50 + currentSpeed * 40;
+          const targetFreq = isNitro ? baseFreq * 1.5 : baseFreq;
+
+          this.oscillator.frequency.setTargetAtTime(
+            targetFreq,
+            this.audioCtx.currentTime,
+            0.1,
+          );
+
+          // Nitro sẽ làm âm thanh to và gắt hơn một chút
+          this.gainNode.gain.setTargetAtTime(
+            isNitro ? 0.2 : 0.1,
+            this.audioCtx.currentTime,
+            0.1,
+          );
+        }
+
+        stopEngine() {
+          if (this.oscillator) {
+            this.oscillator.stop();
+            this.isPlaying = false;
+          }
+        }
+      }
+      /** * MODULE 13: ADVANCED INPUT HANDLER
+       *  đây là hệ thống xử lý đa phím bấm để  điều khiển xe chuẩn xác nhất
+       */
+      class InputHandler {
+        constructor() {
+          this.keyMap = {};
+          this.setupEventListeners();
+          console.log(" hệ thống điều khiển đã sẵn sàng phục vụ");
+        }
+
+        setupEventListeners() {
+          // Lắng nghe khi  nhấn phím xuống
+          window.addEventListener("keydown", (event) => {
+            const key = event.code.toLowerCase();
+            this.keyMap[key] = true;
+
+            // Kích âm thanh động cơ khi bắt đầu nhấn ga lần đầu
+            if (key === "keyw" && soundManager) {
+              if (soundManager.audioCtx.state === "suspended") {
+                soundManager.audioCtx.resume();
+              }
+              soundManager.startEngine();
+            }
+          });
+
+          // Lắng nghe khi buông phím ra
+          window.addEventListener("keyup", (event) => {
+            const key = event.code.toLowerCase();
+            this.keyMap[key] = false;
+          });
+
+          // Chặn cuộn trang khi nhấn phím mũi tên hoặc Space để chơi game tập trung hơn
+          window.addEventListener(
+            "keydown",
+            (e) => {
+              if (
+                [
+                  "Space",
+                  "ArrowUp",
+                  "ArrowDown",
+                  "ArrowLeft",
+                  "ArrowRight",
+                ].indexOf(e.code) > -1
+              ) {
+                e.preventDefault();
+              }
+            },
+            false,
+          );
+        }
+
+        isPressed(keyCode) {
+          // Hàm kiểm tra trg thái phím để các Module khác gọi tới
+          return this.keyMap[keyCode.toLowerCase()] === true;
+        }
+
+        getInputs() {
+          //  đây là gói dữ liệu đầu vào trả về cho vòng lặp game chính
+          return {
+            forward: this.isPressed("KeyW") || this.isPressed("ArrowUp"),
+            backward: this.isPressed("KeyS") || this.isPressed("ArrowDown"),
+            left: this.isPressed("KeyA") || this.isPressed("ArrowLeft"),
+            right: this.isPressed("KeyD") || this.isPressed("ArrowRight"),
+            nitro: this.isPressed("space"),
+            reset: this.isPressed("KeyR"),
+          };
+        }
+      }
+      /** * MODULE 14: GAME ENGINE
+       * Kết nối và vận hành lõi trò chơi
+       */
+      class GameEngine {
+        constructor() {
+          // Đảm bảo các biến toàn cục cần thiết tồn tại
+          if (typeof soundManager === "undefined") window.soundManager = null;
+          if (typeof playerVehicle === "undefined") window.playerVehicle = null;
+
+          this.init();
+        }
+
+        init() {
+          // Khởi tạo các hệ thống phụ
+          if (typeof bootstrap === "function") bootstrap();
+
+          this.input = new InputHandler();
+          this.player = new PlayerVehicle();
+          this.bots = new BotManager();
+          this.world = new WorldManager();
+          this.obstacles = new ObstacleManager();
+          this.collisions = new CollisionSystem();
+          this.particles = new ParticleSystem();
+          this.cameraCtrl = new CameraController();
+          this.lights = new LightingManager();
+
+          // Khởi tạo biến toàn cục an toàn
+          window.playerVehicle = this.player;
+
+          // Kiểm tra xem class SoundManager có tồn tại không trước khi khởi tạo
+          if (typeof SoundManager !== "undefined") {
+            window.soundManager = new SoundManager();
+          } else {
+            console.warn(
+              "Hệ thống âm thanh chưa được định nghĩa, game sẽ chạy không nhạc.",
+            );
+          }
+
+          console.log("Engine khởi động thành công 🏁");
+          this.run();
+        }
+
+        update(dt) {
+          if (typeof isDead !== "undefined" && isDead) return;
+
+          const inputs = this.input.getInputs();
+
+          // 1. Cập nhật Player và Inputs
+          this.player.update(inputs, dt);
+
+          // 2. Cập nhật AI Bots & Vật cản
+          const pZ = this.player.mesh ? this.player.mesh.position.z : 0;
+          this.bots.update(dt, pZ);
+          this.obstacles.update(pZ);
+
+          // 3. Cập nhật Môi trường Endless
+          this.world.update(pZ);
+          this.lights.update(pZ);
+
+          // 4. Kiểm tra va chạm
+          this.collisions.check(
+            this.player,
+            this.bots.bots,
+            this.obstacles.obstacles,
+          );
+
+          // 5. Cập nhật Camera và Hiệu ứng
+          this.cameraCtrl.update(this.player, dt);
+          this.particles.update(dt);
+
+          if (
+            typeof isNitroActive !== "undefined" &&
+            isNitroActive &&
+            this.player.mesh
+          ) {
+            this.particles.createNitroEffect(this.player.mesh.position);
+          }
+
+          // 6. Cập nhật Âm thanh an toàn
+          if (
+            window.soundManager &&
+            typeof window.soundManager.update === "function"
+          ) {
+            window.soundManager.update(
+              typeof speed !== "undefined" ? speed : 1,
+              typeof isNitroActive !== "undefined" ? isNitroActive : false,
+            );
+          }
+
+          // 7. Cập nhật giao diện (HUD)
+          this.updateUI();
+        }
+
+        updateUI() {
+          const speedEl = document.getElementById("speedometer");
+          const nitroEl = document.getElementById("nitro-level");
+          const rankEl = document.getElementById("rank");
+
+          if (speedEl)
+            speedEl.innerText = Math.round(
+              (typeof speed !== "undefined" ? speed : 0) * 100,
+            );
+          if (nitroEl)
+            nitroEl.style.width =
+              (typeof nitro !== "undefined" ? nitro : 0) + "%";
+
+          if (rankEl && this.player.mesh) {
+            let currentRank = Math.max(
+              1,
+              Math.floor(15 - Math.abs(this.player.mesh.position.z) / 2000),
+            );
+            rankEl.innerText = "RANK: " + currentRank + " / 15";
+          }
+        }
+
+        run() {
+          const loop = () => {
+            if (typeof isDead !== "undefined" && !isDead) {
+              // Kiểm tra clock và renderer trước khi chạy
+              if (
+                typeof clock !== "undefined" &&
+                typeof renderer !== "undefined" // kiem tra xem bien nao la NULL / undefined truoc khi su dung
+              ) {
+                const dt = clock.getDelta();
+                this.update(dt);
+                renderer.render(scene, camera);
+              }
+            }
+            requestAnimationFrame(loop);
+          };
+          requestAnimationFrame(loop);
+        }
+      }
+      /** * MODULE 15: ADVANCED MATERIALS SYSTEM
+       *  đây là nơi tinh chỉnh vật liệu để xe và đường đua nhìn thật chuyên nghiệp
+       */
+      const MaterialLibrary = {
+        // Vật liệu sơn xe cao cấp với độ phản chiếu gương
+        getCarPaint: (color) => {
+          return new THREE.MeshStandardMaterial({
+            color: color,
+            metalness: 0.9, // Độ kim lo cực cao
+            roughness: 0.1, // Bề mặt siêu bóng loáng
+            emissive: color,
+            emissiveIntensity: 0.2, // Xe hơi phát sáng nhẹ trong đêm
+          });
+        },
+
+        // Vật liệu lốp xe cao su nhám
+        getTyreMat: () => {
+          return new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            roughness: 0.8,
+            metalness: 0.1,
+          });
+        },
+
+        // Vật liệu đường nhựa có độ bóng khi đèn lướt qua
+        getRoadMat: () => {
+          const mat = new THREE.MeshStandardMaterial({
+            color: 0x0a0a0a,
+            roughness: 0.4,
+            metalness: 0.2,
+          });
+          return mat;
+        },
+
+        // Vật liệu rào chắn Neon phát sáng rực rỡ
+        getNeonMat: (color) => {
+          return new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.9,
+          });
+        },
+      };
+
+      /** * MODULE 16: ENV-MAP EMULATION
+       * Tạo gradient giả lập bầu trời đêm và áp dụng làm ánh sáng môi trường
+       */
+      function createDynamicEnvMap() {
+        // KIỂM TRA: Nếu scene chưa tồn tại thì thoát hàm để tránh lỗi undefined
+        if (typeof scene === "undefined" || !scene) {
+          console.warn("Cảnh báo: 'scene' chưa sẵn sàng. Đang đợi khởi tạo...");
+          return;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createLinearGradient(0, 0, 0, 512);
+        gradient.addColorStop(0, "#020205");
+        gradient.addColorStop(0.5, "#003366");
+        gradient.addColorStop(1, "#660066");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 512, 512);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+
+        // Gán an toàn
+        scene.environment = texture;
+        scene.background = texture; // Thêm dòng này nếu muốn bầu trời cũng hiển thị màu này
+      }
+
+      /** * MODULE 17: BLOOM & GLOW EMULATION
+       * Hệ thống quầng sáng cho đèn Neon
+       */
+      class GlowSystem {
+        constructor() {
+          this.glows = [];
+        }
+
+        createPointGlow(position, color, size = 5) {
+          // KIỂM TRA: Đảm bảo scene tồn tại trước khi add sprite
+          if (typeof scene === "undefined" || !scene) return null;
+
+          const canvas = document.createElement("canvas");
+          canvas.width = 64;
+          canvas.height = 64;
+          const ctx = canvas.getContext("2d");
+          const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+
+          const r = (color >> 16) & 255;
+          const g = (color >> 8) & 255;
+          const b = color & 255;
+
+          gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`);
+          gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, 64, 64);
+
+          const texture = new THREE.CanvasTexture(canvas);
+          const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+          });
+          const sprite = new THREE.Sprite(material);
+          sprite.scale.set(size, size, 1);
+          sprite.position.copy(position);
+
+          scene.add(sprite);
+          this.glows.push(sprite);
+          return sprite;
+        }
+
+        update(playerZ) {
+          this.glows.forEach((glow) => {
+            if (glow.position.z > playerZ + 50) {
+              glow.position.z -= 1000;
+            }
+          });
+        }
+      }
+      /** * MODULE 18: SCREEN OVERLAY FX
+       * Hiệu ứng mờ đục và lóe sáng khi  đ tốc độ nhanh
+       */
+      function applySpeedBlur(currentSpeed) {
+        const blurAmount = Math.max(0, (currentSpeed - 3) * 2);
+        renderer.domElement.style.filter = `contrast(1.1) brightness(${1 + currentSpeed * 0.05}) blur(${blurAmount}px)`;
+      }
+      /** * MODULE 19: ADVANCED BOT AI LOGIC
+       *  đây là bộ não giúp các đối thủ   biết khôn hơn khi lái xe
+       */
+      function injectAdvancedAI(botInstance) {
+        // Thêm các thuộc tính AI mới cho Bot
+        botInstance.aiState = {
+          isChangingLane: false,
+          targetLane: botInstance.lane,
+          decisionTimer: Math.random() * 2,
+          patience: 0.5 + Math.random(),
+        };
+
+        botInstance.think = function (dt, allObstacles) {
+          if (isDead) return;
+
+          // 1. Bộ đếm thời gian để Bot đưa ra quyết định chuyển làn
+          this.aiState.decisionTimer -= dt;
+
+          // 2. Kiểm tra vật cản phía trước mặt Bot
+          let obstacleAhead = false;
+          allObstacles.forEach((obs) => {
+            const dz = this.mesh.position.z - obs.position.z;
+            const dx = Math.abs(this.mesh.position.x - obs.position.x);
+            if (dz > 0 && dz < 40 && dx < 4) {
+              obstacleAhead = true;
+            }
+          });
+
+          // 3. Nếu có vật cản hoặc đến lúc muốn đổi làn cho vui
+          if (
+            (obstacleAhead || this.aiState.decisionTimer <= 0) &&
+            !this.aiState.isChangingLane
+          ) {
+            const direction = Math.random() > 0.5 ? 1 : -1;
+            const newLane = Math.max(
+              0,
+              Math.min(GAME_CONFIG.LANE_COUNT - 1, this.lane + direction),
+            );
+
+            if (newLane !== this.lane) {
+              this.aiState.targetLane = newLane;
+              this.aiState.isChangingLane = true;
+              this.aiState.decisionTimer = 3 + Math.random() * 5;
+            }
+          }
+
+          // 4. Thực hiện việc lách xe sang làn mới mượt mà
+          if (this.aiState.isChangingLane) {
+            const targetX =
+              (this.aiState.targetLane - 2) * (GAME_CONFIG.ROAD_WIDTH / 5);
+            const steerStep = 10 * dt;
+
+            if (Math.abs(this.mesh.position.x - targetX) < steerStep) {
+              this.mesh.position.x = targetX;
+              this.lane = this.aiState.targetLane;
+              this.aiState.isChangingLane = false;
+            } else {
+              this.mesh.position.x +=
+                (targetX > this.mesh.position.x ? 1 : -1) * steerStep;
+              // Nghiêng xe bot khi lách làn cho thật
+              this.mesh.rotation.z = THREE.MathUtils.lerp(
+                this.mesh.rotation.z,
+                targetX > this.mesh.position.x ? -0.1 : 0.1,
+                0.1,
+              );
+            }
+          } else {
+            this.mesh.rotation.z = THREE.MathUtils.lerp(
+              this.mesh.rotation.z,
+              0,
+              0.1,
+            );
+          }
+        };
+      }
+      /** * MODULE 20: WEATHER & ATMOSPHERE
+       *  đây là hệ thống t mưa và sấm sét cho đường đua thêm kịch tính
+       */
+      class WeatherSystem {
+        constructor() {
+          this.rainCount = 200;
+          this.rainGeo = new THREE.BufferGeometry();
+          this.rainPositions = new Float32Array(this.rainCount * 3);
+
+          // Khởi t vị trí mưa ngẫu nhiên xung quanh camera
+          for (let i = 0; i < this.rainCount * 3; i += 3) {
+            this.rainPositions[i] = (Math.random() - 0.5) * 100;
+            this.rainPositions[i + 1] = Math.random() * 50;
+            this.rainPositions[i + 2] = (Math.random() - 0.5) * 100;
+          }
+
+          this.rainGeo.setAttribute(
+            "position",
+            new THREE.BufferAttribute(this.rainPositions, 3),
+          );
+          this.rainMat = new THREE.PointsMaterial({
+            color: 0xaaaaaa,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.5,
+          });
+
+          this.rainPoints = new THREE.Points(this.rainGeo, this.rainMat);
+          scene.add(this.rainPoints);
+
+          this.lightningTimer = 0;
+        }
+
+        update(dt, cameraPos) {
+          // 1. Hiệu ứng mưa đuổi theo camera
+          this.rainPoints.position.set(cameraPos.x, 0, cameraPos.z);
+          const positions = this.rainGeo.attributes.position.array;
+
+          for (let i = 1; i < positions.length; i += 3) {
+            positions[i] -= 40 * dt; // Mưa rơi nhanh
+            if (positions[i] < 0) positions[i] = 50;
+          }
+          this.rainGeo.attributes.position.needsUpdate = true;
+
+          // 2. Hệ thống sấm sét ngẫu nhiên (Thunderbolt)
+          this.lightningTimer -= dt;
+          if (this.lightningTimer <= 0) {
+            if (Math.random() > 0.99) {
+              // Tỉ lệ xuất hiện sấm sét
+              this.triggerLightning();
+              this.lightningTimer = 2 + Math.random() * 5;
+            }
+          }
+        }
+
+        triggerLightning() {
+          //  làm lóe sáng bầu trời và tăng độ sáng môi trường trong chớp mắt
+          const originalFog = scene.fog.color.clone();
+          const originalExposure = renderer.toneMappingExposure;
+
+          scene.fog.color.setHex(0xffffff);
+          renderer.toneMappingExposure = 4.0;
+
+          setTimeout(
+            () => {
+              scene.fog.color.copy(originalFog);
+              renderer.toneMappingExposure = originalExposure;
+            },
+            50 + Math.random() * 150,
+          );
+        }
+      }
+      /** * MODULE 21: DRIFT & TIRE MARKS SYSTEM
+       *  đây là hệ thống ghi l dấu vết những cú lách xe thần sầu
+       */
+      class DriftSystem {
+        constructor() {
+          this.marks = [];
+          this.maxMarks = 100; // Giới h để không làm máy  bị lag
+          this.markGeo = new THREE.PlaneGeometry(0.5, 2);
+          this.markMat = new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            transparent: true,
+            opacity: 0.4,
+            depthWrite: false,
+          });
+        }
+
+        //  hàm này t ra vệt đen dưới bánh xe khi  đang rẽ gắt
+        leaveMark(position, rotationY) {
+          const mark = new THREE.Mesh(this.markGeo, this.markMat.clone());
+          mark.position.set(position.x, 0.1, position.z); // Nằm ngay sát mặt đường
+          mark.rotation.x = -Math.PI / 2;
+          mark.rotation.z = rotationY;
+
+          scene.add(mark);
+          this.marks.push(mark);
+
+          // Nếu nhiều vết quá thì xóa bớt cái cũ đi cho nhẹ
+          if (this.marks.length > this.maxMarks) {
+            const oldMark = this.marks.shift();
+            scene.remove(oldMark);
+          }
+        }
+
+        update(dt) {
+          // Làm mờ dần các vết cũ theo thời gian cho tự nhiên
+          this.marks.forEach((mark, index) => {
+            mark.material.opacity -= dt * 0.1;
+            if (mark.material.opacity <= 0) {
+              scene.remove(mark);
+              this.marks.splice(index, 1);
+            }
+          });
+        }
+      }
+
+      /** * MODULE 22: DRIFT LOGIC INTEGRATION
+       * Tính toán khi nào thì xe   bắt đầu trượt bánh
+       */
+      function checkDriftState(player, inputs) {
+        const isSteering = inputs.left || inputs.right;
+        const highSpeed = speed > 2.0;
+
+        if (isSteering && highSpeed && !isDead) {
+          //  cứ mỗi khung hình con l để l 2 vệt bánh xe phía sau
+          const leftWheelPos = player.mesh.position
+            .clone()
+            .add(new THREE.Vector3(-1, 0, 1.5));
+          const rightWheelPos = player.mesh.position
+            .clone()
+            .add(new THREE.Vector3(1, 0, 1.5));
+
+          driftSystem.leaveMark(leftWheelPos, player.mesh.rotation.y);
+          driftSystem.leaveMark(rightWheelPos, player.mesh.rotation.y);
+
+          // Rung nhẹ xe khi đang drift cho  cảm nhận được độ bám đường
+          player.mesh.position.x += (Math.random() - 0.5) * 0.05;
+        }
+      }
+      /** * MODULE 23: SPEED TRAIL SYSTEM
+       *  đây là hiệu ứng luồng sáng xé gió khi  nhấn Nitro
+       */
+      class SpeedTrailSystem {
+        constructor() {
+          this.trails = [];
+          this.trailMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.6,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+          });
+        }
+
+        // T dải sáng kéo dài từ các điểm trên xe
+        createTrailSegment(startPos, endPos) {
+          const length = startPos.distanceTo(endPos);
+          const geo = new THREE.CylinderGeometry(0.05, 0.05, length, 8);
+          const trail = new THREE.Mesh(geo, this.trailMaterial.clone());
+
+          // Đặt vị trí và xoay hướng dải sáng theo hướng di chuyển
+          trail.position.copy(startPos.clone().lerp(endPos, 0.5));
+          trail.lookAt(endPos);
+          trail.rotation.x += Math.PI / 2;
+
+          scene.add(trail);
+          this.trails.push({
+            mesh: trail,
+            life: 1.0,
+          });
+        }
+
+        update(dt, playerPos, isNitro) {
+          if (isNitro && !isDead) {
+            //  con lấy 2 điểm bên hông cánh gió sau để t vệt sáng
+            const leftOrigin = playerPos
+              .clone()
+              .add(new THREE.Vector3(-1.2, 0.5, 2));
+            const rightOrigin = playerPos
+              .clone()
+              .add(new THREE.Vector3(1.2, 0.5, 2));
+
+            const tailPosLeft = leftOrigin
+              .clone()
+              .add(new THREE.Vector3(0, 0, 5));
+            const tailPosRight = rightOrigin
+              .clone()
+              .add(new THREE.Vector3(0, 0, 5));
+
+            this.createTrailSegment(leftOrigin, tailPosLeft);
+            this.createTrailSegment(rightOrigin, tailPosRight);
+          }
+
+          // Xử lý làm mờ và xóa các vệt sáng cũ
+          for (let i = this.trails.length - 1; i >= 0; i--) {
+            const t = this.trails[i];
+            t.life -= dt * 4;
+            t.mesh.material.opacity = t.life * 0.5;
+            t.mesh.scale.x *= 0.95;
+            t.mesh.scale.z *= 0.95;
+
+            if (t.life <= 0) {
+              scene.remove(t.mesh);
+              this.trails.splice(i, 1);
+            }
+          }
+        }
+      }
+
+      /** * MODULE 24: SCREEN SPACE MOTION LINES
+       * T các tia chớp trắng nhỏ lướt qua màn hình khi tốc độ cực cao
+       */
+      function spawnMotionLines(camera) {
+        if (speed > 3.5) {
+          const lineGeo = new THREE.BoxGeometry(0.02, 0.02, 5);
+          const lineMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3,
+          });
+          const line = new THREE.Mesh(lineGeo, lineMat);
+
+          // Đặt ngẫu nhiên xung quanh tầm nhìn camera
+          line.position.set(
+            (Math.random() - 0.5) * 20,
+            (Math.random() - 0.5) * 20,
+            camera.position.z - 30,
+          );
+          scene.add(line);
+
+          setTimeout(() => scene.remove(line), 100);
+        }
+      }
+      /** * MODULE 25: BUILDING GENERATOR
+       *  đây là hệ thống t ra các tòa nhà chọc trời hai bên đường cho
+       */
+      class CityManager {
+        constructor() {
+          this.buildings = [];
+          this.buildCount = 40; // Số lượng tòa nhà tối đa hai bên đường
+          this.setupBuildings();
+        }
+
+        setupBuildings() {
+          for (let i = 0; i < this.buildCount; i++) {
+            const h = 20 + Math.random() * 80; // Chiều cao ngẫu nhiên
+            const w = 15 + Math.random() * 10;
+
+            const geo = new THREE.BoxGeometry(w, h, w);
+            // Vật liệu tòa nhà có cửa sổ phát sáng nhẹ
+            const mat = new THREE.MeshPhongMaterial({
+              color: 0x050505,
+              emissive: 0x111122,
+              shininess: 10,
+            });
+
+            const b = new THREE.Mesh(geo, mat);
+
+            // Sắp xếp tòa nhà dọc theo đường đua nhưng cách ra một khoảng
+            const side = Math.random() > 0.5 ? 1 : -1;
+            b.position.set(
+              side * (GAME_CONFIG.ROAD_WIDTH + 20 + Math.random() * 30),
+              h / 2,
+              -i * 50,
+            );
+
+            scene.add(b);
+            this.buildings.push(b);
+
+            // Thêm một dải Neon trang trí trên đỉnh tòa nhà cho đẹp
+            const neonGeo = new THREE.BoxGeometry(w + 0.5, 1, w + 0.5);
+            const neonMat = new THREE.MeshBasicMaterial({
+              color: side > 0 ? 0x00ffff : 0xff00ff,
+            });
+            const neon = new THREE.Mesh(neonGeo, neonMat);
+            neon.position.set(0, h / 2, 0);
+            b.add(neon);
+          }
+        }
+
+        update(playerZ) {
+          this.buildings.forEach((b) => {
+            // Cơ chế Endless cho thành phố
+            if (b.position.z > playerZ + 100) {
+              b.position.z -= 1000;
+              // Thay đổi nhẹ vị trí X để thành phố nhìn không bị lặp l
+              const side = b.position.x > 0 ? 1 : -1;
+              b.position.x =
+                side * (GAME_CONFIG.ROAD_WIDTH + 20 + Math.random() * 30);
+            }
+          });
+        }
+      }
+      /** * MODULE 26: SCORE & COMBO MANAGER
+       *  đây là nơi ghi nhận những lần lái xe
+       */
+      class ScoreManager {
+        constructor() {
+          this.currentScore = 0;
+          this.comboMultiplier = 1;
+          this.comboTimer = 0;
+          this.lastUpdateZ = 0;
+        }
+
+        update(playerPos, currentSpeed, isNitro, bots) {
+          if (isDead) return;
+
+          // 1. Điểm theo quãng đường ( càng đi xa điểm càng cao
+          const distanceCovered = Math.abs(playerPos.z - this.lastUpdateZ);
+          if (distanceCovered > 1) {
+            this.addScore(Math.floor(distanceCovered * 0.5));
+            this.lastUpdateZ = playerPos.z;
+          }
+
+          // 2. Thưởng điểm khi dùng Nitro xé gió
+          if (isNitro) {
+            this.addScore(2);
+          }
+
+          // 3. Hệ thống Near Miss (Lách tử thần)
+          bots.forEach((bot) => {
+            const dz = Math.abs(playerPos.z - bot.mesh.position.z);
+            const dx = Math.abs(playerPos.x - bot.mesh.position.x);
+
+            // Nếu  lách sát s (khoảng cách cực nhỏ) mà không ch
+            if (dz < 3 && dx < 3.5 && dx > 2.2) {
+              this.triggerNearMiss();
+            }
+          });
+
+          // Giảm dần combo theo thời gian
+          if (this.comboTimer > 0) {
+            this.comboTimer -= 0.016; // Giả định 60fps
+          } else {
+            this.comboMultiplier = 1;
+          }
+        }
+
+        addScore(amount) {
+          this.currentScore += amount * this.comboMultiplier;
+          document.getElementById("score").innerText =
+            "SCORE: " + Math.floor(this.currentScore);
+        }
+
+        triggerNearMiss() {
+          this.comboMultiplier += 0.5;
+          this.comboTimer = 2.0; //  có 2 giây để nối tiếp combo
+          this.addScore(100);
+
+          //  con sẽ hiển thị hiệu ứng thông báo t thời
+          this.showPopup("NEAR MISS! x" + this.comboMultiplier.toFixed(1));
+        }
+
+        showPopup(text) {
+          const popup = document.getElementById("combo-text");
+          popup.innerText = text;
+          popup.style.opacity = 1;
+          setTimeout(() => {
+            popup.style.opacity = 0;
+          }, 1000);
+        }
+      }
+      /** * MODULE 27: MINIMAP SYSTEM
+       *  đây là radar giúp  quan sát các đối thủ xung quanh mình
+       */
+      class Minimap {
+        constructor() {
+          this.container = document.getElementById("minimap");
+          this.playerBlip = document.createElement("div");
+          this.setupPlayerBlip();
+          this.botBlips = [];
+        }
+
+        setupPlayerBlip() {
+          this.playerBlip.style.width = "6px";
+          this.playerBlip.style.height = "6px";
+          this.playerBlip.style.backgroundColor = "#00ffff"; // Màu Cyan đặc trưng
+          this.playerBlip.style.position = "absolute";
+          this.playerBlip.style.borderRadius = "50%";
+          this.playerBlip.style.left = "50%";
+          this.playerBlip.style.bottom = "20px";
+          this.playerBlip.style.boxShadow = "0 0 10px #00ffff";
+          this.container.appendChild(this.playerBlip);
+        }
+
+        update(playerPos, bots) {
+          //  tôi sẽ dọn dẹp các chấm đỏ cũ  xe Bot đi
+          this.botBlips.forEach((b) => b.remove());
+          this.botBlips = [];
+
+          bots.forEach((bot) => {
+            const dz = (bot.mesh.position.z - playerPos.z) * 0.15; // Tỉ lệ bản đồ
+            const dx = bot.mesh.position.x * 2; // Phóng đ chiều ngang cho dễ nhìn
+
+            // Nếu đối thủ nằm trong ph vi radar (không quá xa
+            if (Math.abs(dz) < 60) {
+              const blip = document.createElement("div");
+              blip.style.position = "absolute";
+              blip.style.width = "4px";
+              blip.style.height = "4px";
+              blip.style.backgroundColor = "#ff0000"; // Đối thủ màu đỏ
+              blip.style.borderRadius = "50%";
+
+              // Tính toán vị trí trên khung radar 100x150
+              const leftPos = 50 + dx;
+              const bottomPos = 20 - dz;
+
+              if (bottomPos > 0 && bottomPos < 150) {
+                blip.style.left = leftPos + "%";
+                blip.style.bottom = bottomPos + "px";
+                this.container.appendChild(blip);
+                this.botBlips.push(blip);
+              }
+            }
+          });
+        }
+      }
+      /** * MODULE 28: RACE START SYSTEM
+       * đây là hệ thống đếm ngược trước khi vào trận
+       */
+      class RaceStarter {
+        constructor() {
+          this.countdownValue = 3;
+          this.isStarting = false;
+          this.overlay = document.getElementById("countdown-overlay");
+        }
+
+        start() {
+          if (!this.overlay) {
+            console.error(
+              "Dạ Senpai ơi, con không tìm thấy countdown-overlay rồi!",
+            );
+            return;
+          }
+          this.isStarting = true;
+          this.overlay.style.display = "flex";
+          this.runCountdown();
+        }
+
+        runCountdown() {
+          if (this.countdownValue > 0) {
+            this.overlay.innerText = this.countdownValue;
+            this.overlay.style.fontSize = "150px";
+            this.overlay.style.transform = "scale(2)";
+
+            // gọi âm thanh
+            if (typeof soundManager !== "undefined" && soundManager.playBeep) {
+              soundManager.playBeep(440, 0.1);
+            }
+
+            setTimeout(() => {
+              if (this.overlay) this.overlay.style.transform = "scale(1)";
+              this.countdownValue--;
+              this.runCountdown();
+            }, 1000);
+          } else {
+            this.overlay.innerText = "GO!";
+            this.overlay.style.color = "#00ff00";
+
+            if (typeof soundManager !== "undefined" && soundManager.playBeep) {
+              soundManager.playBeep(880, 0.5);
+            }
+
+            // Fix lỗi ReferenceError bằng cách gán thẳng vào window nếu chưa khai báo
+            if (typeof gameStarted !== "undefined") {
+              gameStarted = true;
+            } else {
+              window.gameStarted = true;
+            }
+
+            setTimeout(() => {
+              if (this.overlay) this.overlay.style.display = "none";
+            }, 1000);
+          }
+        }
+      }
+      /** * MODULE 29: SOUND EXTENSION
+       * Tôi bổ sung thêm hàm t tiếng Beep vào SoundManager  Phần 9 cho
+       */
+      SoundManager.prototype.playBeep = function (freq, duration) {
+        if (!this.audioCtx) return;
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        osc.frequency.value = freq;
+        gain.gain.value = 0.1;
+        osc.start();
+        osc.stop(this.audioCtx.currentTime + duration);
+      };
+      /** * MODULE 30: ACHIEVEMENT & RANK SYSTEM
+       *  đây là nơi vinh danh trên đường đua
+       */
+      class RankManager {
+        constructor() {
+          this.ranks = [
+            { score: 0, title: "ROOKIE", color: "#aaaaaa" },
+            { score: 5000, title: "STREET RACER", color: "#00ff00" },
+            { score: 15000, title: "PRO DRIFTER", color: "#00ffff" },
+            { score: 50000, title: "SPEED DEMON", color: "#ff00ff" },
+            { score: 100000, title: "ASPHALT LEGEND", color: "#ffff00" },
+          ];
+          this.currentRankIndex = 0;
+        }
+
+        checkRankUpdate(totalScore) {
+          // Kiểm tra xem  đã đủ điểm để thăng hg chưa
+          for (let i = this.ranks.length - 1; i >= 0; i--) {
+            if (
+              totalScore >= this.ranks[i].score &&
+              i > this.currentRankIndex
+            ) {
+              this.currentRankIndex = i;
+              this.triggerRankUpEffect(this.ranks[i]);
+              break;
+            }
+          }
+        }
+
+        triggerRankUpEffect(rank) {
+          console.log("Chúc mừng! đã đc thăng hạng: " + rank.title);
+
+          // Hiển thị thông báo thăng hg lung linh trên màn hình
+          const rankPop = document.createElement("div");
+          rankPop.style.position = "absolute";
+          rankPop.style.top = "20%";
+          rankPop.style.left = "50%";
+          rankPop.style.transform = "translate(-50%, -50%)";
+          rankPop.style.color = rank.color;
+          rankPop.style.fontSize = "40px";
+          rankPop.style.fontWeight = "bold";
+          rankPop.style.textShadow = `0 0 20px ${rank.color}`;
+          rankPop.innerText = "RANK UP: " + rank.title;
+          document.body.appendChild(rankPop);
+
+          // Sau 3 giây thì tự dọn dẹp cho màn hình đỡ rối
+          setTimeout(() => {
+            rankPop.style.opacity = "0";
+            rankPop.style.transition = "opacity 1s";
+            setTimeout(() => rankPop.remove(), 1000);
+          }, 2000);
+
+          //  làm rung màn hình một cái cho vui :)
+          if (collisionSystem) collisionSystem.applyScreenShake();
+        }
+      }
+      /** * MODULE 31: DAY/NIGHT CYCLE SYSTEM
+       *  đây là hệ thống thay đổi thời gian giúp đường đua   sống động hơn
+       */
+      class TimeCycleManager {
+        constructor() {
+          this.time = 0; // 0 là đêm, 1 là ngày
+          this.cycleSpeed = 0.05; // Tốc độ trôi  thời gian
+          this.isDay = false;
+        }
+
+        update(dt) {
+          // Thời gian trôi đi theo mỗi khung hình
+          this.time += dt * this.cycleSpeed;
+          const cycle = (Math.sin(this.time) + 1) / 2; // Chuyển đổi về khoảng 0 -> 1
+
+          // 1. Cập nhật màu sắc bầu trời (Skybox)
+          const sunsetColor = new THREE.Color(0xff4400); // Cam tím hoàng hôn
+          const midnightColor = new THREE.Color(0x020205); // Đen đêm sâu
+          const currentColor = midnightColor.clone().lerp(sunsetColor, cycle);
+
+          scene.background = currentColor;
+          if (scene.fog) scene.fog.color.copy(currentColor);
+
+          // 2. Cập nhật cường độ ánh sáng môi trường
+          if (lightingManager) {
+            lightingManager.sunLight.intensity = 0.2 + cycle * 1.5;
+            // Khi trời sáng, đèn đường sẽ mờ đi để tiết kiệm điện cho thành phố
+            lightingManager.lights.forEach((light) => {
+              light.intensity = 2.0 * (1 - cycle);
+            });
+          }
+
+          // 3. Hiệu ứng sương mù đô thị (Urban Fog)
+          scene.fog.near = 10 + cycle * 40;
+          scene.fog.far = 200 + cycle * 800;
+        }
+      }
+
+      /** * MODULE 32: DYNAMIC STAR FIELD
+       * rải thêm những ngôi sao khi trời về đêm cho đẹp
+       */
+      function createStarField() {
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 500;
+        const positions = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount * 3; i += 3) {
+          positions[i] = (Math.random() - 0.5) * 2000;
+          positions[i + 1] = 100 + Math.random() * 500;
+          positions[i + 2] = (Math.random() - 0.5) * 2000;
+        }
+
+        starGeo.setAttribute(
+          "position",
+          new THREE.BufferAttribute(positions, 3),
+        );
+        const starMat = new THREE.PointsMaterial({
+          color: 0xffffff,
+          size: 0.8,
+          transparent: true,
+        });
+        const stars = new THREE.Points(starGeo, starMat);
+        scene.add(stars);
+
+        //  các vì sao sẽ luôn đi theo  để bầu trời không bị trống trải
+        return stars;
+      }
+      /** * MODULE 33: ADVANCED CAMERA DYNAMICS
+       *  đây là hệ thống t cảm giác tốc độ "xé gió" qua góc nhìn
+       */
+      class CameraDynamics {
+        constructor() {
+          this.shakeIntensity = 0;
+          this.baseFOV = 75; // Góc nhìn tiêu chuẩn
+          this.targetFOV = 75;
+        }
+
+        update(dt, currentSpeed, isNitro, isColliding) {
+          // 1. Hiệu ứng FOV Warping: Tốc độ càng cao, tầm nhìn càng rộng
+          this.targetFOV = this.baseFOV + currentSpeed * 10;
+          if (isNitro) this.targetFOV += 15; // Nhấn Nitro là phải giãn ra thêm nữa
+
+          // Chuyển đổi FOV mượt mà để  không bị chóng mặt
+          camera.fov = THREE.MathUtils.lerp(camera.fov, this.targetFOV, 0.1);
+          camera.updateProjectionMatrix();
+
+          // 2. Tính toán độ rung (Shake)
+          // Rung nhẹ khi ch nhanh, rung mh khi Nitro và rung cực mh khi va ch
+          let currentShake = currentSpeed * 0.02;
+          if (isNitro) currentShake += 0.05;
+          if (isColliding) currentShake += 0.5;
+
+          this.shakeIntensity = THREE.MathUtils.lerp(
+            this.shakeIntensity,
+            currentShake,
+            0.2,
+          );
+
+          // Áp dụng rung ngẫu nhiên vào vị trí camera
+          if (this.shakeIntensity > 0.01) {
+            camera.position.x += (Math.random() - 0.5) * this.shakeIntensity;
+            camera.position.y += (Math.random() - 0.5) * this.shakeIntensity;
+          }
+
+          // 3. Hiệu ứng nghiêng Camera (Chassis Roll)
+          // Khi  rẽ, camera sẽ nghiêng nhẹ theo hướng ngược l để t cảm giác lực quán tính
+          const rollAngle =
+            (inputHandler.isPressed("KeyA") ? 0.05 : 0) +
+            (inputHandler.isPressed("KeyD") ? -0.05 : 0);
+          camera.rotation.z = THREE.MathUtils.lerp(
+            camera.rotation.z,
+            rollAngle,
+            0.1,
+          );
+        }
+      }
+
+      /** * MODULE 34: SPEED BLUR OVERLAY
+       *  thêm một chút hiệu ứng nhòe ở rìa màn hình
+       */
+      function updateSpeedEffects(speed) {
+        const overlay = document.getElementById("speed-vignette");
+        if (overlay) {
+          const opacity = Math.max(0, (speed - 2) * 0.3);
+          overlay.style.opacity = opacity;
+          // T hiệu ứng hầm hố hơn khi  đ đỉnh tốc độ
+          overlay.style.boxShadow = `inset 0 0 ${speed * 50}px rgba(0, 255, 255, ${opacity})`;
+        }
+      }
+      /** * MODULE 35: GAME MENU & PAUSE CONTROLLER
+       *  đây là hệ thống giúp  kiểm soát nhịp độ trận đấu
+       */
+      class MenuManager {
+        constructor() {
+          this.isPaused = false;
+          this.menuElement = document.getElementById("pause-menu");
+          this.setupListeners();
+        }
+
+        setupListeners() {
+          // Lắng nghe phím Esc hoặc P để t dừng
+          window.addEventListener("keydown", (e) => {
+            if (e.code === "Escape" || e.code === "KeyP") {
+              this.togglePause();
+            }
+          });
+
+          //  nút Resume trong Menu   đây
+          const resumeBtn = document.getElementById("resume-btn");
+          if (resumeBtn) {
+            resumeBtn.onclick = () => this.togglePause();
+          }
+        }
+
+        togglePause() {
+          if (isDead) return; // Nếu xe đã hỏng thì không t dừng được nữa
+
+          this.isPaused = !this.isPaused;
+
+          if (this.isPaused) {
+            this.menuElement.style.display = "flex";
+            this.menuElement.style.backdropFilter = "blur(10px)";
+            // Dừng âm thanh động cơ cho  yên tĩnh
+            if (soundManager) soundManager.stopEngine();
+            // Ngừng vòng lặp thời gian  Three.js
+            clock.stop();
+            console.log(" trò chơi đã tạm dừng theo ý bạn");
+          } else {
+            this.menuElement.style.display = "none";
+            if (soundManager && inputHandler.isPressed("KeyW")) {
+              soundManager.startEngine();
+            }
+            clock.start();
+            console.log(" tiếp tục cuộc đua thôi!");
+          }
+        }
+      }
+
+      /** * MODULE 36: UI ANIMATION HELPER
+       * Làm cho các nút bấm trong Menu lung linh hơn
+       */
+      function animateMenuButtons() {
+        const buttons = document.querySelectorAll(".menu-btn");
+        buttons.forEach((btn) => {
+          btn.onmouseover = () => {
+            btn.style.transform = "scale(1.1)";
+            btn.style.boxShadow = "0 0 20px #00ffff";
+          };
+          btn.onmouseout = () => {
+            btn.style.transform = "scale(1)";
+            btn.style.boxShadow = "none";
+          };
+        });
+      }
+      /** * MODULE 37: THE BIG BANG - FINAL INITIALIZATION
+       * Lệnh khởi chạy đua xe
+       */
+      let gameEngine;
+
+      function startAsphaltGame() {
+        // Ngăn chặn khởi tạo chồng chéo
+        if (window.isGameRunning) return;
+        window.isGameRunning = true;
+
+        console.log("Đang chuẩn bị xe cho bạn...");
+
+        // Khởi tạo các hệ thống toàn cục
+        if (typeof createDynamicEnvMap === "function") createDynamicEnvMap();
+
+        // Khởi chạy Engine chính
+        gameEngine = new GameEngine();
+
+        // Khởi tạo các hệ thống phụ trợ (Đưa ra global để dễ quản lý)
+        window.cityManager = new CityManager();
+        window.weatherSystem = new WeatherSystem();
+        window.driftSystem = new DriftSystem();
+        window.glowSystem = new GlowSystem();
+        window.menuManager = new MenuManager();
+        window.rankManager = new RankManager();
+        const starter = new RaceStarter();
+
+        // ÉP BUỘC menu không được pause để bạn đi được luôn
+        window.menuManager.isPaused = false;
+
+        // Đưa các instance vào vòng lặp update Engine
+        gameEngine.update = function (dt) {
+          // Chỉ chạy khi gameStarted = true (sau khi đếm ngược xong)
+          if (
+            !window.gameStarted ||
+            window.menuManager.isPaused ||
+            (typeof isDead !== "undefined" && isDead)
+          )
+            return;
+
+          const inputs = this.input.getInputs();
+
+          // Cập nhật logic cốt lõi
+          if (this.player) this.player.update(inputs, dt);
+          if (this.bots) this.bots.update(dt, this.player.mesh.position.z);
+          if (this.obstacles)
+            this.obstacles.update(this.player.mesh.position.z);
+          if (this.world) this.world.update(this.player.mesh.position.z);
+
+          // Hiệu ứng môi trường
+          window.cityManager.update(this.player.mesh.position.z);
+          window.weatherSystem.update(dt, camera.position);
+          window.glowSystem.update(this.player.mesh.position.z);
+          window.driftSystem.update(dt);
+
+          if (typeof checkDriftState === "function") {
+            checkDriftState(this.player, inputs);
+          }
+
+          // Va chạm & Điểm số
+          if (this.collisions) {
+            this.collisions.check(
+              this.player,
+              this.bots.bots,
+              this.obstacles.obstacles,
+            );
+          }
+
+          if (typeof scoreManager !== "undefined") {
+            scoreManager.update(
+              this.player.mesh.position,
+              typeof speed !== "undefined" ? speed : 0,
+              typeof isNitroActive !== "undefined" ? isNitroActive : false,
+              this.bots.bots,
+            );
+            window.rankManager.checkRankUpdate(scoreManager.currentScore);
+          }
+
+          // Camera & Sound
+          this.cameraCtrl.update(this.player, dt);
+          if (typeof applySpeedBlur === "function")
+            applySpeedBlur(typeof speed !== "undefined" ? speed : 0);
+          if (typeof spawnMotionLines === "function") spawnMotionLines(camera);
+          if (soundManager)
+            soundManager.update(
+              typeof speed !== "undefined" ? speed : 0,
+              typeof isNitroActive !== "undefined" ? isNitroActive : false,
+            );
+
+          this.updateUI();
+        };
+
+        // Bắt đầu đếm ngược
+        starter.start();
+        if (typeof animateMenuButtons === "function") animateMenuButtons();
+      }
+
+      // đổi lại thành đợi bạn nhấn nút mới chạy để không lỗi nữa
+      window.onload = () => {
+        console.log("Gara đã sẵn sàng nhấn CLICK TO RACE");
+        window.isGameRunning = false;
+        window.gameStarted = false; // Reset trạng thái khi load trang
+      };
+      /** * MODULE 38: GARAGE & VEHICLE DATA
+       *  đây là danh sách các siêu xe để  lựa chọn trước khi xuất quân
+       */
+      const VEHICLE_DATABASE = [
+        {
+          name: "CYAN VELOCITY",
+          color: 0x00ffff,
+          stats: { speed: 4.5, handling: 0.12, nitro: 100 },
+          description: " đây là chiếc xe cân bằng nhất cho bạn  💎",
+        },
+        {
+          name: "NEON FURY",
+          color: 0xff00ff,
+          stats: { speed: 5.2, handling: 0.08, nitro: 80 },
+          description: "Tốc độ cực cao nhưng rất khó cầm lái 🔥",
+        },
+        {
+          name: "GOLDEN LEGEND",
+          color: 0xffd700,
+          stats: { speed: 4.0, handling: 0.15, nitro: 150 },
+          description: "Lượng Nitro dồi dào giúp  bứt phá  👑",
+        },
+      ];
+
+      class GarageManager {
+        constructor() {
+          this.currentCarIndex = 0;
+          this.isInGarage = true;
+          this.garageRotation = 0;
+          this.setupGarageUI();
+        }
+
+        setupGarageUI() {
+          // T giao diện chọn xe cực ngầu cho
+          const ui = document.createElement("div");
+          ui.id = "garage-ui";
+          ui.innerHTML = `
+                    <div style="position:absolute; top:10%; width:100%; text-align:center; color:#00ffff; font-family:Orbitron; font-size:40px; text-shadow:0 0 20px #00ffff;">
+                        SELECT YOUR SUPERCAR
+                    </div>
+                    <div id="car-info" style="position:absolute; bottom:15%; left:5%; color:white; font-family:sans-serif; background:rgba(0,0,0,0.7); padding:20px; border-left:5px solid #00ffff;">
+                        <h2 id="car-name"></h2>
+                        <p id="car-desc"></p>
+                        <div style="width:200px; height:10px; background:#333;"><div id="stat-speed" style="height:100%; background:#00ffff;"></div></div>
+                        <p>Speed</p>
+                    </div>
+                    <button id="prev-car" style="position:absolute; left:5%; top:50%; padding:20px; background:none; border:2px solid #00ffff; color:white; cursor:pointer;"><<</button>
+                    <button id="next-car" style="position:absolute; right:5%; top:50%; padding:20px; background:none; border:2px solid #00ffff; color:white; cursor:pointer;">>></button>
+                    <button id="start-race-btn" style="position:absolute; bottom:10%; right:5%; padding:20px 50px; background:#00ffff; border:none; color:black; font-weight:bold; cursor:pointer; font-size:20px;">RACE NOW!</button>
+                `;
+          document.body.appendChild(ui);
+          this.updateUI();
+
+          document.getElementById("next-car").onclick = () => this.changeCar(1);
+          document.getElementById("prev-car").onclick = () =>
+            this.changeCar(-1);
+          document.getElementById("start-race-btn").onclick = () =>
+            this.startRace();
+        }
+
+        changeCar(dir) {
+          this.currentCarIndex =
+            (this.currentCarIndex + dir + VEHICLE_DATABASE.length) %
+            VEHICLE_DATABASE.length;
+          const carData = VEHICLE_DATABASE[this.currentCarIndex];
+
+          // Cập nhật màu sắc xe   ngay lập tức
+          if (playerVehicle) {
+            playerVehicle.bodyMat.color.setHex(carData.color);
+            playerVehicle.bodyMat.emissive.setHex(carData.color);
+          }
+          this.updateUI();
+          if (soundManager) soundManager.playBeep(600, 0.1);
+        }
+
+        updateUI() {
+          const car = VEHICLE_DATABASE[this.currentCarIndex];
+          document.getElementById("car-name").innerText = car.name;
+          document.getElementById("car-desc").innerText = car.description;
+          document.getElementById("stat-speed").style.width =
+            (car.stats.speed / 6) * 100 + "%";
+        }
+
+        update(dt) {
+          if (this.isInGarage && playerVehicle) {
+            // Xe   sẽ xoay tròn lấp lánh trong Gara
+            this.garageRotation += dt * 0.5;
+            playerVehicle.mesh.rotation.y = this.garageRotation;
+            playerVehicle.mesh.position.y =
+              Math.sin(this.garageRotation * 2) * 0.2; // Nhún nhảy nhẹ 🐧
+          }
+        }
+
+        startRace() {
+          this.isInGarage = false;
+          document.getElementById("garage-ui").style.display = "none";
+          // Áp dụng chỉ số xe đã chọn cho
+          const stats = VEHICLE_DATABASE[this.currentCarIndex].stats;
+          GAME_CONFIG.MAX_SPEED = stats.speed;
+
+          if (typeof startAsphaltGame === "function") {
+            // Chuyển camera về vị trí đua xe
+            isGameRunning = true;
+          }
+        }
+      }
+      /** * MODULE 39: PROCEDURAL MUSIC SYNTHESIZER
+       *  đây là nh trưởng ảo sẽ so nh EDM riêng cho  đua xe
+       */
+      class ProceduralMusic {
+        constructor() {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.connect(this.ctx.destination);
+          this.masterGain.gain.value = 0.15;
+
+          this.isPlaying = false;
+          this.notes = [110, 123, 130, 146, 164, 174, 196]; // Thang âm Techno
+          this.currentStep = 0;
+        }
+
+        //  hàm này t ra tiếng Bass dập dìu cho  hưng phấn
+        createSynthNote(freq, time, duration) {
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+
+          osc.type = "sawtooth"; // Tiếng cưa đặc trưng  nh EDM
+          osc.frequency.setValueAtTime(freq, time);
+          osc.frequency.exponentialRampToValueAtTime(freq / 2, time + duration);
+
+          g.gain.setValueAtTime(0.2, time);
+          g.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+          osc.connect(g);
+          g.connect(this.masterGain);
+
+          osc.start(time);
+          osc.stop(time + duration);
+        }
+
+        start() {
+          if (this.isPlaying) return;
+          this.isPlaying = true;
+          this.playLoop();
+          console.log(" nhạc lên rồi, xuất phát nào!");
+        }
+
+        playLoop() {
+          if (!this.isPlaying) return;
+
+          const now = this.ctx.currentTime;
+          const note =
+            this.notes[Math.floor(Math.random() * this.notes.length)];
+
+          // T nhịp Drum & Bass cơ bản
+          this.createSynthNote(note, now, 0.25);
+          if (this.currentStep % 4 === 0) {
+            this.createSynthNote(55, now, 0.5); // Tiếng Kick trống
+          }
+
+          this.currentStep++;
+          setTimeout(() => this.playLoop(), 250); // Nhịp 120 BPM
+        }
+
+        stop() {
+          this.isPlaying = false;
+        }
+      }
+
+      /** * MODULE 40: NEON MUSIC VISUALIZER
+       * Làm cho thành phố nhún nhảy theo nh
+       */
+      function updateMusicVisualization(dt, cityManager) {
+        if (musicSystem && musicSystem.isPlaying) {
+          const intensity = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
+
+          cityManager.buildings.forEach((b, i) => {
+            // Các tòa nhà sẽ cao thấp theo nhịp điệu
+            const scale = 1 + intensity * (i % 5 === 0 ? 0.5 : 0.1);
+            b.scale.y = THREE.MathUtils.lerp(b.scale.y, scale, 0.1);
+
+            // Đèn Neon đổi màu theo nh luôn 🌈
+            if (b.children[0]) {
+              b.children[0].material.emissiveIntensity = intensity * 2;
+            }
+          });
+        }
+      }
+      /** * MODULE 41: ATMOSPHERIC PARTICLE SYSTEM
+       *  đây là những h bụi ánh sáng và lá bay để đường đua
+       */
+      class AtmosphericSystem {
+        constructor() {
+          this.particleCount = 1000;
+          this.geometry = new THREE.BufferGeometry();
+          this.positions = new Float32Array(this.particleCount * 3);
+          this.velocities = [];
+
+          for (let i = 0; i < this.particleCount; i++) {
+            // Rải h ngẫu nhiên trong không gian rộng lớn quanh
+            this.positions[i * 3] = (Math.random() - 0.5) * 200;
+            this.positions[i * 3 + 1] = Math.random() * 50;
+            this.positions[i * 3 + 2] = (Math.random() - 0.5) * 500;
+
+            this.velocities.push({
+              x: (Math.random() - 0.5) * 0.1,
+              y: -0.05 - Math.random() * 0.1,
+              z: (Math.random() - 0.5) * 0.1,
+            });
+          }
+
+          this.geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(this.positions, 3),
+          );
+
+          // dùng vật liệu phát sáng nhẹ để t hiệu ứng đom đóm đêm
+          this.material = new THREE.PointsMaterial({
+            size: 0.2,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending,
+          });
+
+          this.points = new THREE.Points(this.geometry, this.material);
+          scene.add(this.points);
+        }
+
+        update(dt, playerZ, currentSpeed) {
+          const positions = this.geometry.attributes.position.array;
+
+          for (let i = 0; i < this.particleCount; i++) {
+            // H chuyển động theo vận tốc riêng và bị cuốn theo tốc độ xe
+            positions[i * 3] += this.velocities[i].x;
+            positions[i * 3 + 1] += this.velocities[i].y;
+            positions[i * 3 + 2] += this.velocities[i].z + currentSpeed * 0.5;
+
+            // Nếu h bay ra sau lưng  quá xa, sẽ đưa nó về phía trước
+            if (positions[i * 3 + 2] > 50) {
+              positions[i * 3 + 2] = -450;
+              positions[i * 3] = (Math.random() - 0.5) * 200;
+              positions[i * 3 + 1] = Math.random() * 50;
+            }
+          }
+
+          //  cập nhật vị trí mới cho hệ thống h
+          this.geometry.attributes.position.needsUpdate = true;
+
+          // Hiệu ứng h đổi màu nhẹ theo thời gian cho lung linh 🐧
+          const time = Date.now() * 0.001;
+          this.material.color.setHSL((time * 0.1) % 1, 0.5, 0.8);
+        }
+      }
+
+      /** * MODULE 42: WIND STREAK EFFECT
+       * T ra các vệt gió trắng mờ lướt qua khi  đ tốc độ nhanh
+       */
+      function createWindStreaks() {
+        const streakGeo = new THREE.BoxGeometry(0.01, 0.01, 10);
+        const streakMat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.2,
+        });
+
+        for (let i = 0; i < 20; i++) {
+          const streak = new THREE.Mesh(streakGeo, streakMat);
+          streak.position.set(
+            (Math.random() - 0.5) * 30,
+            Math.random() * 10,
+            -Math.random() * 500,
+          );
+          scene.add(streak);
+        }
+      }
+      /** * MODULE 43: CINEMATIC POST-PROCESSING ENGINE
+       *  đây là "lớp trang điểm" giúp màn hình   lung linh như phim điện ảnh
+       */
+      class PostProcessingManager {
+        constructor() {
+          this.vignetteOpacity = 0.5;
+          this.chromaticAmount = 0.002;
+          this.setupEffects();
+        }
+
+        setupEffects() {
+          // T một lớp phủ Overlay để giả lập hiệu ứng ống kính camera
+          const overlay = document.createElement("div");
+          overlay.id = "cinema-overlay";
+          overlay.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    pointer-events: none;
+                    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 150%);
+                    transition: opacity 0.5s;
+                    z-index: 1000;
+                `;
+          document.body.appendChild(overlay);
+          this.overlay = overlay;
+        }
+
+        //  hàm này làm màn hình rung chuyển và nhòe màu khi  phóng nhanh
+        applySpeedWarp(currentSpeed) {
+          const intensity = Math.min(1, currentSpeed / GAME_CONFIG.MAX_SPEED);
+          this.overlay.style.opacity = intensity * 0.8;
+
+          // Hiệu ứng "ảo giác" màu sắc khi đ tốc độ cao
+          if (intensity > 0.8) {
+            this.chromaticAmount = 0.005 * intensity;
+            // Chỉnh sửa trực tiếp shader  Three.js (nếu có) hoặc dùng CSS Filter
+            document.body.style.filter = `contrast(${100 + intensity * 20}%) brightness(${100 + intensity * 10}%)`;
+          } else {
+            document.body.style.filter = "none";
+          }
+        }
+
+        /** * MODULE 44: SCREEN DAMAGE & IMPACT FX
+         * Khi  va ch, màn hình sẽ "vỡ" hoặc hiện vết nứt giả lập
+         */
+        triggerImpact() {
+          const flash = document.createElement("div");
+          flash.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: white; opacity: 0.8; z-index: 2000; pointer-events: none;
+                `;
+          document.body.appendChild(flash);
+
+          // Làm mờ dần vết nứt sau 0.5 giây
+          let op = 0.8;
+          const fade = setInterval(() => {
+            op -= 0.1;
+            flash.style.opacity = op;
+            if (op <= 0) {
+              clearInterval(fade);
+              flash.remove();
+            }
+          }, 50);
+
+          // Rung màn hình cực mh cho  giật mình
+          if (this.cameraShake) this.cameraShake(0.5);
+        }
+      }
+
+      /** * MODULE 45: PERFORMANCE MONITOR
+       * Hệ thống theo dõi hiệu năng để đảm bảo máy  luôn mượt mà
+       */
+      function monitorPerformance() {
+        const stats = {
+          fps: 0,
+          lastTime: performance.now(),
+          frames: 0,
+        };
+
+        function loop() {
+          stats.frames++;
+          const now = performance.now();
+          if (now >= stats.lastTime + 1000) {
+            stats.fps = stats.frames;
+            stats.frames = 0;
+            stats.lastTime = now;
+            // Nếu FPS thấp quá, con sẽ tự động giảm số lượng h mưa cho
+            if (stats.fps < 30 && weatherSystem) {
+              weatherSystem.particleCount = Math.max(
+                100,
+                weatherSystem.particleCount - 50,
+              );
+            }
+          }
+          requestAnimationFrame(loop);
+        }
+        loop();
+      }
+      /** * MODULE 46: LOCAL STORAGE & DATA PERSISTENCE
+       *  đây là nơi cất giữ mọi kỷ lục và tiền thưởng   vào bộ nhớ máy
+       */
+      class SaveSystem {
+        constructor() {
+          this.key = "ASPHALT_ULTIMATE_SAVE";
+          this.data = this.load();
+        }
+
+        load() {
+          const saved = localStorage.getItem(this.key);
+          return saved
+            ? JSON.parse(saved)
+            : {
+                highScore: 0,
+                totalCoins: 0,
+                unlockedCars: [0],
+                settings: { music: true, fx: true },
+              };
+        }
+
+        save(newScore, newCoins) {
+          if (newScore > this.data.highScore) this.data.highScore = newScore;
+          this.data.totalCoins += newCoins;
+          localStorage.setItem(this.key, JSON.stringify(this.data));
+          console.log(" tôi đã cất kỹ điểm số cho  rồi  ");
+        }
+      }
+
+      /** * MODULE 47: DYNAMIC MISSION SYSTEM
+       * Mỗi vòng đua sẽ có những thử thách riêng để  không thấy chán
+       */
+      class MissionManager {
+        constructor() {
+          this.missions = [
+            { desc: "Drift 100m liên tục", goal: 100, current: 0, reward: 500 },
+            { desc: "Đ vận tốc cực đ", goal: 1, current: 0, reward: 1000 },
+            { desc: "Lách qua 10 xe Bot", goal: 10, current: 0, reward: 1500 },
+          ];
+          this.activeMissionIndex = Math.floor(
+            Math.random() * this.missions.length,
+          );
+        }
+
+        updateProgress(type, value) {
+          let m = this.missions[this.activeMissionIndex];
+          m.current += value;
+          if (m.current >= m.goal) {
+            this.completeMission(m);
+          }
+        }
+
+        completeMission(m) {
+          console.log(" giỏi quá! Nhiệm vụ hoàn thành: " + m.desc);
+          //  cộng thưởng
+          saveSystem.save(0, m.reward);
+          this.activeMissionIndex =
+            (this.activeMissionIndex + 1) % this.missions.length;
+        }
+      }
+
+      /** * MODULE 48: ADVANCED GHOST CAR SYSTEM
+       * Hệ thống t ra "xe ma" mô phỏng l kỷ lục cũ   để  tự vượt qua chính mình
+       */
+      class GhostSystem {
+        constructor() {
+          this.record = [];
+          this.isRecording = true;
+        }
+        recordFrame(pos, rot) {
+          if (this.isRecording)
+            this.record.push({ p: pos.clone(), r: rot.clone() });
+        }
+      }
+
+      /** * MODULE 49: SCREEN OVERLAY & ANNOUNCER
+       * Hệ thống thông báo bằng chữ ch giữa màn hình
+       */
+      function showAnnouncement(text, color = "#ffffff") {
+        const el = document.createElement("div");
+        el.style.cssText = `
+                position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+                color: ${color}; font-size: 50px; font-family: 'Orbitron';
+                text-shadow: 0 0 20px ${color}; z-index: 5000; pointer-events: none;
+                animation: slideIn 0.5s ease-out;
+            `;
+        el.innerText = text;
+        document.body.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = "0";
+          setTimeout(() => el.remove(), 500);
+        }, 2000);
+      }
+
+      /** * MODULE 50: GLOBAL TICK RATE OPTIMIZER
+       * Điều chỉnh độ mượt  game dựa trên cấu hình máy
+       */
+      const GAME_TICK_RATE = 1 / 60;
+      let accumulator = 0;
+      /** * MODULE 51: POLICE CHASE AI (Hệ thống Cảnh sát truy đuổi)
+       *  khi  ch quá nhanh, cảnh sát sẽ xuất hiện
+       */
+      class PoliceSystem {
+        constructor() {
+          this.policeCars = [];
+          this.isChasing = false;
+          this.alertLevel = 0;
+        }
+
+        spawnPolice(playerZ) {
+          const geo = new THREE.BoxGeometry(2, 1.5, 4);
+          const mat = new THREE.MeshPhongMaterial({ color: 0x0000ff }); // Xe màu xanh đặc trưng
+          const police = new THREE.Mesh(geo, mat);
+
+          // Thêm đèn còi hú nhấp nháy Xanh - Đỏ
+          const lightGeo = new THREE.BoxGeometry(1.5, 0.2, 0.5);
+          const redLight = new THREE.Mesh(
+            lightGeo,
+            new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+          );
+          const blueLight = new THREE.Mesh(
+            lightGeo,
+            new THREE.MeshBasicMaterial({ color: 0x0000ff }),
+          );
+          redLight.position.set(0, 0.8, 0.5);
+          blueLight.position.set(0, 0.8, -0.5);
+          police.add(redLight, blueLight);
+
+          police.position.set((Math.random() - 0.5) * 10, 0.75, playerZ - 100);
+          scene.add(police);
+          this.policeCars.push({
+            mesh: police,
+            lights: [redLight, blueLight],
+            timer: 0,
+          });
+        }
+
+        update(dt, playerPos) {
+          this.policeCars.forEach((p) => {
+            // Cảnh sát sẽ bám đuổi  gắt gao
+            const dir = new THREE.Vector3()
+              .subVectors(playerPos, p.mesh.position)
+              .normalize();
+            p.mesh.position.add(dir.multiplyScalar(speed * 1.1));
+
+            // Hiệu ứng đèn nháy
+            p.timer += dt * 10;
+            p.lights[0].visible = Math.sin(p.timer) > 0;
+            p.lights[1].visible = Math.sin(p.timer) < 0;
+          });
+        }
+      }
+
+      /** * MODULE 52: ADVANCED PARTICLE EXPLOSION
+       *  khi có va ch mh, xe sẽ phát nổ thành hàng ngàn mảnh vụn
+       */
+      class ExplosionManager {
+        constructor() {
+          this.particles = [];
+        }
+
+        createExplosion(pos, color = 0xffaa00) {
+          for (let i = 0; i < 50; i++) {
+            const pGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+            const pMat = new THREE.MeshBasicMaterial({ color: color });
+            const p = new THREE.Mesh(pGeo, pMat);
+            p.position.copy(pos);
+            p.userData.velocity = new THREE.Vector3(
+              (Math.random() - 0.5) * 2,
+              Math.random() * 2,
+              (Math.random() - 0.5) * 2,
+            );
+            scene.add(p);
+            this.particles.push(p);
+          }
+          if (soundManager) soundManager.playBeep(100, 0.3); // Giả lập tiếng nổ
+        }
+
+        update(dt) {
+          for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.position.add(p.userData.velocity);
+            p.userData.velocity.y -= 0.05; // Trọng lực làm mảnh vỡ rơi xuống
+            p.scale.multiplyScalar(0.95);
+            if (p.scale.x < 0.01) {
+              scene.remove(p);
+              this.particles.splice(i, 1);
+            }
+          }
+        }
+      }
+
+      /** * MODULE 53: TAUNT & EMOTE SYSTEM (Hệ thống khiêu khích)
+       *   có thể nhấn phím T để "thả thính" hoặc trêu chọc đối thủ  🐧
+       */
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "KeyT" && !isDead) {
+          showAnnouncement(" IS THE BEST! 🔥", "#ffff00");
+          // Xe   sẽ bốc đầu nhẹ một cái
+          playerVehicle.mesh.rotation.x = -0.2;
+          setTimeout(() => (playerVehicle.mesh.rotation.x = 0), 300);
+        }
+      });
+
+      /** * MODULE 54: SLO-MO MATRIX EFFECT (Hiệu ứng quay chậm)
+       * Khi  suýt tông nhau, thời gian sẽ chậm l để  xử lý
+       */
+      function applySloMo(duration) {
+        const originalStep = 1 / 60;
+        timeScale = 0.2; // Chậm l 5 lần
+        setTimeout(() => {
+          timeScale = 1.0;
+        }, duration);
+      }
+
+      /** * MODULE 55: TURBO FLAME EXHAUST
+       *  đây là hiệu ứng lửa phun ra từ ống xả khi  dùng Nitro
+       */
+      function updateExhaustFlames(playerMesh, isNitro) {
+        if (isNitro) {
+          // T các khối cầu lửa nhỏ rực rỡ ở đuôi xe
+          const flame = new THREE.Mesh(
+            new THREE.SphereGeometry(0.2),
+            new THREE.MeshBasicMaterial({ color: 0xff4400 }),
+          );
+          flame.position.set(
+            playerMesh.position.x,
+            playerMesh.position.y,
+            playerMesh.position.z + 2,
+          );
+          scene.add(flame);
+          setTimeout(() => scene.remove(flame), 100);
+        }
+      }
+      /** * MODULE 56: GLOBAL DYNAMIC WEATHER SYSTEM (Hệ thống thời tiết cực h)
+       *  không chỉ có tuyết, mà giờ đây sẽ có cả những cơn mưa axit làm mờ kính xe
+       */
+      class ExtremeWeather {
+        constructor() {
+          this.isRaining = false;
+          this.rainParticles = [];
+          this.thunderTimer = 0;
+        }
+
+        toggleRain(state) {
+          this.isRaining = state;
+          if (state)
+            showAnnouncement("CAUTION: HEAVY RAIN INCOMING!", "#00aaff");
+        }
+
+        update(dt, camera) {
+          if (!this.isRaining) return;
+
+          // T hiệu ứng chớp sáng khi có sấm sét
+          this.thunderTimer += dt;
+          if (Math.random() > 0.99) {
+            scene.background = new THREE.Color(0xffffff);
+            setTimeout(
+              () => (scene.background = new THREE.Color(0x020205)),
+              50,
+            );
+          }
+
+          // Hiệu ứng h mưa t vào màn hình
+          const rainGeo = new THREE.BufferGeometry();
+          const positions = new Float32Array(300);
+          for (let i = 0; i < 300; i += 3) {
+            positions[i] = camera.position.x + (Math.random() - 0.5) * 10;
+            positions[i + 1] = camera.position.y + (Math.random() - 0.5) * 10;
+            positions[i + 2] = camera.position.z - Math.random() * 20;
+          }
+          // (Phần code này sẽ kéo dài thêm logic xử lý h mưa cho  ..)
+        }
+      }
+
+      /** * MODULE 57: INTELLIGENT TRAFFIC SYSTEM (Hệ thống giao thông thông minh)
+       * Các xe Bot bây giờ không chỉ ch thẳng mà còn biết né tránh  hoặc lg lách
+       */
+      class SmartTraffic {
+        constructor() {
+          this.vehicles = [];
+        }
+
+        applyAI(bot, playerPos) {
+          // Nếu  ở quá gần, xe Bot sẽ hoảng sợ và rẽ sang làn khác
+          const dist = bot.position.distanceTo(playerPos);
+          if (dist < 15) {
+            const steerDir = bot.position.x > playerPos.x ? 0.1 : -0.1;
+            bot.position.x += steerDir;
+            // Hiệu ứng đèn xi-nhan nhấp nháy khi Bot rẽ
+          }
+        }
+      }
+
+      /** * MODULE 58: CINEMATIC REPLAY CAMERA (Hệ thống quay chậm nghệ thuật)
+       * Khi  về đích hoặc có cú va ch kinh điển, camera sẽ tự động đổi góc nhìn
+       */
+      class ReplayEngine {
+        constructor() {
+          this.frames = [];
+          this.isReplaying = false;
+        }
+
+        record(data) {
+          if (this.frames.length < 1000) this.frames.push(data);
+        }
+
+        playTopDownView() {
+          this.isReplaying = true;
+          camera.position.set(0, 50, playerVehicle.mesh.position.z);
+          camera.lookAt(playerVehicle.mesh.position);
+          showAnnouncement("CINEMATIC REPLAY", "#ff00ff");
+        }
+      }
+
+      /** * MODULE 59: RESOURCE LEAK CLEANER (Trình tối ưu hóa bộ nhớ)
+       *  để game ch lâu không bị lag máy , sẽ tự động dọn rác
+       */
+      function garbageCollector() {
+        scene.children.forEach((obj) => {
+          if (obj.position.z > camera.position.z + 50) {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) obj.material.dispose();
+            scene.remove(obj);
+          }
+        });
+      }
+      /** * MODULE 60: BOSS BATTLE ENGINE
+       *  đây là thực thể trên đường đua
+       */
+      class BossManager {
+        constructor() {
+          this.bossActive = false;
+          this.bossHealth = 100;
+          this.bossMesh = null;
+          this.attackTimer = 0;
+        }
+
+        spawnBoss(playerZ) {
+          this.bossActive = true;
+          showAnnouncement("WARNING: BIG BOSS APPROACHING!", "#ff0000");
+
+          // T mô hình xe tải khổng lồ chiếm 2 làn đường
+          const group = new THREE.Group();
+          const bodyGeo = new THREE.BoxGeometry(6, 4, 12);
+          const bodyMat = new THREE.MeshPhongMaterial({
+            color: 0x333333,
+            shininess: 100,
+          });
+          const body = new THREE.Mesh(bodyGeo, bodyMat);
+
+          // Thêm các thùng hàng phía sau để  va ch
+          const cargoGeo = new THREE.BoxGeometry(5.8, 3.8, 11.8);
+          const cargoMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+          const cargo = new THREE.Mesh(cargoGeo, cargoMat);
+          cargo.position.y = 0.5;
+          group.add(body, cargo);
+
+          // Thêm đèn hậu đỏ rực đe dọa
+          const brakeLight = new THREE.PointLight(0xff0000, 2, 10);
+          brakeLight.position.set(0, 1, 6);
+          group.add(brakeLight);
+
+          this.bossMesh = group;
+          this.bossMesh.position.set(0, 2, playerZ - 150);
+          scene.add(this.bossMesh);
+
+          //  con thêm thanh máu Boss lên màn hình cho  dễ theo dõi
+          this.createBossUI();
+        }
+
+        createBossUI() {
+          const healthBar = document.createElement("div");
+          healthBar.id = "boss-health-bg";
+          healthBar.style.cssText = `
+                    position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
+                    width: 60%; height: 20px; background: rgba(0,0,0,0.5); border: 2px solid #ff0000;
+                `;
+          const fill = document.createElement("div");
+          fill.id = "boss-health-fill";
+          fill.style.cssText = `width: 100%; height: 100%; background: #ff0000; transition: width 0.3s;`;
+          healthBar.appendChild(fill);
+          document.body.appendChild(healthBar);
+        }
+
+        update(dt, playerPos, isNitro) {
+          if (!this.bossActive || !this.bossMesh) return;
+
+          // Boss luôn giữ khoảng cách và lg lách chặn đường
+          const targetX = Math.sin(Date.now() * 0.002) * 8;
+          this.bossMesh.position.x = THREE.MathUtils.lerp(
+            this.bossMesh.position.x,
+            targetX,
+            0.05,
+          );
+          this.bossMesh.position.z = playerPos.z - 40; // Luôn ở phía trước
+
+          // Nếu  húc vào Boss khi đang dùng Nitro, Boss sẽ mất máu
+          const dist = this.bossMesh.position.distanceTo(playerPos);
+          if (dist < 8 && isNitro) {
+            this.takeDamage(5);
+            if (collisionSystem) collisionSystem.applyScreenShake();
+          }
+
+          // Boss tấn công: Thả thùng hàng cản địa
+          this.attackTimer += dt;
+          if (this.attackTimer > 3) {
+            this.dropObstacle();
+            this.attackTimer = 0;
+          }
+        }
+
+        takeDamage(amt) {
+          this.bossHealth -= amt;
+          document.getElementById("boss-health-fill").style.width =
+            this.bossHealth + "%";
+          if (this.bossHealth <= 0) this.defeatBoss();
+        }
+
+        dropObstacle() {
+          //  con sẽ gọi module Obstacle cũ để thả vật cản ngay đuôi xe tải
+          if (obstacleManager) {
+            obstacleManager.spawnSingle(
+              this.bossMesh.position.x,
+              this.bossMesh.position.z + 5,
+            );
+          }
+        }
+
+        defeatBoss() {
+          this.bossActive = false;
+          showAnnouncement("BOSS DEFEATED! +5000 PTS", "#ffff00");
+          if (explosionManager)
+            explosionManager.createExplosion(this.bossMesh.position, 0xff0000);
+          scene.remove(this.bossMesh);
+          document.getElementById("boss-health-bg").remove();
+          saveSystem.save(5000, 1000); // Thưởng lớn cho bạn 💎
+        }
+      }
+      /** * MODULE 61: VEHICLE DAMAGE VISUALIZER
+       *  đây là hệ thống làm xe   "tơi tả" sau những cú va ch nảy lửa
+       */
+      class DamageVisualizer {
+        constructor(targetMesh) {
+          this.mesh = targetMesh;
+          this.smokeParticles = [];
+          this.fireParticles = [];
+          this.isSmoking = false;
+          this.isOnFire = false;
+        }
+
+        updateDamageEffect(healthPercentage) {
+          // 1. Hiệu ứng móp méo vỏ xe (Deformation)
+          //  con sẽ làm các khối  xe hơi lệch đi một chút
+          if (healthPercentage < 70) {
+            this.mesh.rotation.z = Math.sin(Date.now() * 0.05) * 0.02; // Xe bị rung do hỏng trục
+          }
+
+          // 2. Kích ho khói đen khi máu dưới 50%
+          if (healthPercentage < 50) this.isSmoking = true;
+
+          // 3. Kích ho lửa cháy khi máu dưới 20%
+          if (healthPercentage < 20) this.isOnFire = true;
+        }
+
+        spawnSmoke() {
+          if (!this.isSmoking) return;
+
+          const smokeGeo = new THREE.SphereGeometry(0.3, 8, 8);
+          const smokeMat = new THREE.MeshBasicMaterial({
+            color: 0x333333,
+            transparent: true,
+            opacity: 0.5,
+          });
+          const s = new THREE.Mesh(smokeGeo, smokeMat);
+
+          // Khói bốc lên từ nắp capo
+          s.position.set(
+            this.mesh.position.x + (Math.random() - 0.5),
+            this.mesh.position.y + 1,
+            this.mesh.position.z - 2,
+          );
+          scene.add(s);
+          this.smokeParticles.push(s);
+        }
+
+        update(dt) {
+          this.spawnSmoke();
+
+          // Cập nhật logic cho các h khói bay lên và tan biến
+          for (let i = this.smokeParticles.length - 1; i >= 0; i--) {
+            const p = this.smokeParticles[i];
+            p.position.y += 0.1;
+            p.position.x += Math.sin(Date.now() * 0.01) * 0.05;
+            p.scale.multiplyScalar(1.02);
+            p.material.opacity -= 0.02;
+
+            if (p.material.opacity <= 0) {
+              scene.remove(p);
+              this.smokeParticles.splice(i, 1);
+            }
+          }
+
+          //  nếu xe cháy thì thêm các tia lửa điện tóe ra nữa
+          if (this.isOnFire && Math.random() > 0.8) {
+            if (explosionManager)
+              explosionManager.createExplosion(this.mesh.position, 0xffaa00);
+          }
+        }
+      }
+
+      /** * MODULE 62: CHASSIS SPARK EFFECT
+       * Khi  cà khịa vào dải phân cách, lửa sẽ tóe ra từ gầm xe
+       */
+      function triggerSpark(pos) {
+        for (let i = 0; i < 5; i++) {
+          const spark = new THREE.Mesh(
+            new THREE.BoxGeometry(0.1, 0.1, 0.1),
+            new THREE.MeshBasicMaterial({ color: 0xffff00 }),
+          );
+          spark.position.copy(pos);
+          spark.userData.v = new THREE.Vector3(
+            (Math.random() - 0.5) * 2,
+            Math.random() * 2,
+            2,
+          );
+          scene.add(spark);
+          setTimeout(() => scene.remove(spark), 200);
+        }
+      }
+      /** * MODULE 63: REPLAY BUFFER SYSTEM
+       *  đây là "cuộn băng ghi hình" lưu l những giây phút huy hoàng
+       */
+      class ReplaySystem {
+        constructor() {
+          this.buffer = [];
+          this.maxFrames = 600; // Ghi l khoảng 10 giây cuối cùng
+          this.isReplaying = false;
+          this.replayIndex = 0;
+        }
+
+        //  sẽ ghi l vị trí, góc quay và tốc độ mỗi khung hình
+        recordFrame(playerMesh, camera) {
+          if (this.isReplaying) return;
+
+          const frameData = {
+            pos: playerMesh.position.clone(),
+            rot: playerMesh.rotation.clone(),
+            camPos: camera.position.clone(),
+            camRot: camera.rotation.clone(),
+            speed: speed,
+            isNitro: isNitroActive,
+          };
+
+          this.buffer.push(frameData);
+          if (this.buffer.length > this.maxFrames) {
+            this.buffer.shift(); // Xóa khung hình cũ nhất để tiết kiệm bộ nhớ
+          }
+        }
+
+        /** * MODULE 64: CINEMATIC PLAYBACK ENGINE
+         * Chế độ phát l giúp  chiêm ngưỡng cú lái xe  mình
+         */
+        startReplay() {
+          if (this.buffer.length === 0) return;
+          this.isReplaying = true;
+          this.replayIndex = 0;
+          gameStarted = false; // T dừng điều khiển
+
+          showAnnouncement("CINEMATIC REPLAY", "#00ffff");
+
+          // thêm bộ lọc màu Sepia cho nó giống phim cũ
+          document.body.style.filter = "sepia(0.5) contrast(1.2)";
+        }
+
+        update(dt, playerMesh, camera) {
+          if (!this.isReplaying) return;
+
+          const frame = this.buffer[this.replayIndex];
+          if (frame) {
+            // Tái hiện l vị trí xe và camera
+            playerMesh.position.copy(frame.pos);
+            playerMesh.rotation.copy(frame.rot);
+
+            // Camera sẽ quay quanh xe để t góc nhìn nghệ thuật hơn
+            camera.position.set(
+              frame.pos.x + Math.sin(this.replayIndex * 0.05) * 15,
+              frame.pos.y + 5,
+              frame.pos.z + 15,
+            );
+            camera.lookAt(frame.pos);
+
+            this.replayIndex++;
+            if (this.replayIndex >= this.buffer.length) {
+              this.stopReplay();
+            }
+          }
+        }
+
+        stopReplay() {
+          this.isReplaying = false;
+          document.body.style.filter = "none";
+          showAnnouncement("REPLAY ENDED", "#ffffff");
+          // Sau khi xem xong con trả l quyền điều khiển cho
+        }
+      }
+
+      /** * MODULE 65: SLOW-MOTION TRIGGER
+       * Tự động làm chậm thời gian khi có va ch hoặc bay nhảy
+       */
+      function triggerActionSlowMo(duration = 1000) {
+        timeScale = 0.3; // Chậm l 3 lần
+        if (soundManager) soundManager.playBeep(200, 0.5); // Tiếng vang vọng
+
+        setTimeout(() => {
+          timeScale = 1.0;
+        }, duration);
+      }
+      /** * MODULE 66: GHOST DATA TRACKER
+       *  đây là nơi con ghi l từng milimet đường đi   để làm đối thủ cho chính
+       */
+      class GhostTracker {
+        constructor() {
+          this.recordedGhostData =
+            JSON.parse(localStorage.getItem("BEST_LAP_GHOST")) || [];
+          this.currentRunData = [];
+          this.ghostMesh = null;
+          this.playbackIndex = 0;
+          this.isRecording = true;
+        }
+
+        initGhostMesh() {
+          if (this.recordedGhostData.length === 0) return;
+
+          // T một chiếc xe ma màu xanh nh, trong suốt huyền ảo
+          const ghostGeo = new THREE.BoxGeometry(2, 1, 4);
+          const ghostMat = new THREE.MeshPhongMaterial({
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.3,
+            wireframe: true, // Để nhìn xuyên thấu như bóng ma
+          });
+          this.ghostMesh = new THREE.Mesh(ghostGeo, ghostMat);
+          scene.add(this.ghostMesh);
+        }
+
+        update(playerPos, playerRot, dt) {
+          // 1. Ghi l dữ liệu hiện t
+          if (this.isRecording) {
+            this.currentRunData.push({
+              p: playerPos.clone(),
+              r: playerRot.clone(),
+            });
+          }
+
+          // 2. Di chuyển xe ma theo dữ liệu cũ
+          if (
+            this.ghostMesh &&
+            this.playbackIndex < this.recordedGhostData.length
+          ) {
+            const data = this.recordedGhostData[this.playbackIndex];
+            this.ghostMesh.position.copy(data.p);
+            this.ghostMesh.rotation.copy(data.r);
+            this.playbackIndex++;
+          }
+        }
+
+        saveBestLap() {
+          //  nếu  về đích nhanh hơn, con sẽ lưu l bản ghi này
+          localStorage.setItem(
+            "BEST_LAP_GHOST",
+            JSON.stringify(this.currentRunData),
+          );
+          console.log(" kỷ lục xe ma mới đã được lưu cho  rồi  🏆");
+        }
+
+        reset() {
+          this.currentRunData = [];
+          this.playbackIndex = 0;
+        }
+      }
+
+      /** * MODULE 67: TIME TRIAL UI (Giao diện đếm thời gian)
+       * Hiển thị thời gian ch chính xác đến từng mili giây cho
+       */
+      function updateLapTimer(startTime) {
+        const elapsed = (Date.now() - startTime) / 1000;
+        const timerEl = document.getElementById("lap-timer");
+        if (timerEl) {
+          const mins = Math.floor(elapsed / 60);
+          const secs = (elapsed % 60).toFixed(3);
+          timerEl.innerText = `TIME: ${mins}:${secs < 10 ? "0" : ""}${secs}`;
+
+          // Nếu  ch quá chậm, con sẽ đổi màu chữ sang đỏ để nhắc nhở
+          timerEl.style.color = elapsed > 60 ? "#ff0000" : "#00ff00";
+        }
+      }
+      /** * MODULE 68: VEHICLE PERFORMANCE DATABASE
+       *  đây là bảng thông số kỹ thuật chi tiết để  nâng cấp xe  mình
+       */
+      const UPGRADE_STAGES = {
+        ENGINE: [
+          { level: 1, multiplier: 1.0, cost: 0, desc: "Stock Engine" },
+          { level: 2, multiplier: 1.2, cost: 1000, desc: "Stage 1 Turbo" },
+          { level: 3, multiplier: 1.5, cost: 5000, desc: "Race-Spec V8" },
+        ],
+        TIRES: [
+          { level: 1, grip: 0.1, cost: 0, desc: "Street Tires" },
+          { level: 2, grip: 0.15, cost: 800, desc: "Sport Compound" },
+          { level: 3, grip: 0.22, cost: 3000, desc: "Slick Racing Tires" },
+        ],
+      };
+
+      class UpgradeManager {
+        constructor() {
+          this.currentLevels = { engine: 0, tires: 0 };
+          this.loadUpgrades();
+        }
+
+        //   lưu l các nâng cấp   vào máy để không bị mất
+        loadUpgrades() {
+          const saved = JSON.parse(localStorage.getItem("CAR_UPGRADES"));
+          if (saved) this.currentLevels = saved;
+        }
+
+        applyUpgrades(vehicle) {
+          const engineMod =
+            UPGRADE_STAGES.ENGINE[this.currentLevels.engine].multiplier;
+          const tireGrip = UPGRADE_STAGES.TIRES[this.currentLevels.tires].grip;
+
+          // Thay đổi trực tiếp logic vật lý cho xe
+          GAME_CONFIG.MAX_SPEED *= engineMod;
+          vehicle.handling = tireGrip;
+
+          console.log(
+            ` xe đã được độ xong! Tốc độ tối đa hiện t: ${GAME_CONFIG.MAX_SPEED}  🔥`,
+          );
+        }
+
+        /** * MODULE 69: TUNING SHOP UI
+         * Giao diện cửa hàng độ xe cho  lựa chọn
+         */
+        renderShop() {
+          const shopDiv = document.createElement("div");
+          shopDiv.id = "tuning-shop";
+          shopDiv.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+                    align-items: center; justify-content: center; z-index: 9000;
+                    font-family: 'Orbitron', sans-serif; color: #00ffff;
+                `;
+
+          shopDiv.innerHTML = `
+                    <h1>NEON CUSTOMS GARAGE</h1>
+                    <div class="upgrade-item" style="margin: 20px; border: 1px solid #00ffff; padding: 20px;">
+                        <h3>ENGINE: ${UPGRADE_STAGES.ENGINE[this.currentLevels.engine].desc}</h3>
+                        <button id="upgrade-engine-btn" style="padding: 10px 20px; background: #00ffff; border: none; cursor: pointer;">UPGRADE (Cost: Next Level)</button>
+                    </div>
+                    <button id="close-shop" style="margin-top: 30px; color: white; background: none; border: 1px solid white;">BACK TO RACE</button>
+                `;
+
+          document.body.appendChild(shopDiv);
+
+          document.getElementById("close-shop").onclick = () =>
+            shopDiv.remove();
+          document.getElementById("upgrade-engine-btn").onclick = () =>
+            this.buyUpgrade("engine");
+        }
+
+        buyUpgrade(type) {
+          if (this.currentLevels[type] < 2) {
+            this.currentLevels[type]++;
+            localStorage.setItem(
+              "CAR_UPGRADES",
+              JSON.stringify(this.currentLevels),
+            );
+            showAnnouncement("UPGRADE SUCCESSFUL! 🛠️", "#00ff00");
+            if (soundManager) soundManager.playBeep(800, 0.2);
+            this.renderShop(); // Vẽ l menu
+          } else {
+            showAnnouncement("MAX LEVEL REACHED!", "#ff0000");
+          }
+        }
+      }
+      /** * MODULE 70: SMART TRAFFIC INTELLIGENCE
+       *  đây là bộ não  các xe Bot, giúp chúng biết "khôn" hơn khi đối đầu với
+       */
+      class SmartTrafficAI {
+        constructor(botMesh) {
+          this.mesh = botMesh;
+          this.currentLane = Math.round(this.mesh.position.x / 4); // Chia làn đường
+          this.targetX = this.mesh.position.x;
+          this.changeLaneTimer = Math.random() * 5;
+          this.isChangingLane = false;
+          this.personality = Math.random() > 0.8 ? "AGGRESSIVE" : "NORMAL"; // Có xe sẽ ch láo lắm 🐧
+        }
+
+        update(dt, playerPos, allBots) {
+          this.changeLaneTimer -= dt;
+
+          // 1. Quét radar xung quanh để tránh va ch với xe Bot khác
+          let carAhead = false;
+          allBots.forEach((other) => {
+            if (other !== this.mesh) {
+              const distZ = this.mesh.position.z - other.position.z;
+              if (
+                distZ > 0 &&
+                distZ < 15 &&
+                Math.abs(this.mesh.position.x - other.position.x) < 2
+              ) {
+                carAhead = true;
+              }
+            }
+          });
+
+          // 2. Logic chuyển làn khi gặp vật cản hoặc muốn cản địa
+          if ((carAhead || this.changeLaneTimer <= 0) && !this.isChangingLane) {
+            this.decideNewLane();
+          }
+
+          // 3. Nếu là xe "AGGRESSIVE", nó sẽ cố tình lg vào làn   đó  :)
+          const distToPlayer = this.mesh.position.z - playerPos.z;
+          if (
+            this.personality === "AGGRESSIVE" &&
+            distToPlayer > 0 &&
+            distToPlayer < 30
+          ) {
+            this.targetX = playerPos.x;
+          }
+
+          // Di chuyển mượt mà sang làn mới
+          this.mesh.position.x = THREE.MathUtils.lerp(
+            this.mesh.position.x,
+            this.targetX,
+            0.05,
+          );
+
+          // Hiệu ứng nghiêng xe khi chuyển làn cho chân thực
+          const tilt = (this.targetX - this.mesh.position.x) * 0.2;
+          this.mesh.rotation.z = THREE.MathUtils.lerp(
+            this.mesh.rotation.z,
+            tilt,
+            0.1,
+          );
+        }
+
+        decideNewLane() {
+          this.isChangingLane = true;
+          const lanes = [-8, -4, 0, 4, 8];
+          this.targetX = lanes[Math.floor(Math.random() * lanes.length)];
+          this.changeLaneTimer = 3 + Math.random() * 7;
+
+          // thêm hiệu ứng đèn xi-nhan cho xe Bot luôn
+          this.triggerSignalLights();
+
+          setTimeout(() => {
+            this.isChangingLane = false;
+          }, 2000);
+        }
+
+        triggerSignalLights() {
+          // (Logic nháy đèn xi-nhan trái/phải sẽ được viết thêm ở phần 50 ..)
+        }
+      }
+
+      /** * MODULE 71: GLOBAL TRAFFIC DENSITY CONTROLLER
+       * Tự động điều chỉnh mật độ giao thông dựa trên cấp độ
+       */
+      function adjustTrafficDensity(score) {
+        const level = Math.floor(score / 10000);
+        GAME_CONFIG.TRAFFIC_COUNT = 5 + level * 2; // Càng điểm cao càng đông xe
+        console.log(
+          `Độ khó đã tăng! Mật độ xe hiện t: ${GAME_CONFIG.TRAFFIC_COUNT} `,
+        );
+      }
+      /** * MODULE 72: WET ROAD SHADER MATERIAL
+       *  đây là công thức "ma thuật" làm mặt đường   bóng loáng như gương
+       */
+      class RoadShaderManager {
+        constructor() {
+          this.roadMaterial = null;
+          this.reflectionTexture = null;
+          this.setupShader();
+        }
+
+        setupShader() {
+          // T một vật liệu tùy chỉnh kết hợp giữa độ nhám và độ bóng
+          this.roadMaterial = new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            roughness: 0.1, // Thấp để t độ bóng
+            metalness: 0.5,
+            emissive: 0x050505,
+          });
+
+          //  con thêm một lớp vân bề mặt (Normal Map) giả lập nhựa đường cho
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 128;
+          const ctx = canvas.getContext("2d");
+          for (let i = 0; i < 500; i++) {
+            ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.1})`;
+            ctx.fillRect(Math.random() * 128, Math.random() * 128, 2, 2);
+          }
+          const noiseTex = new THREE.CanvasTexture(canvas);
+          noiseTex.wrapS = noiseTex.wrapT = THREE.RepeatWrapping;
+          noiseTex.repeat.set(10, 100);
+          this.roadMaterial.normalMap = noiseTex;
+        }
+
+        /** * MODULE 73: DYNAMIC PUDDLE SYSTEM
+         * T ra các vũng nước đọng ngẫu nhiên trên đường cho  lướt qua
+         */
+        updatePuddles(dt, currentSpeed) {
+          // Khi  phóng nhanh, hiệu ứng phản chiếu sẽ bị nhòe đi một chút
+          this.roadMaterial.roughness = THREE.MathUtils.lerp(
+            this.roadMaterial.roughness,
+            0.05 + currentSpeed * 0.1,
+            0.1,
+          );
+
+          // Hiệu ứng mặt đường "trôi" dưới bánh xe
+          if (this.roadMaterial.normalMap) {
+            this.roadMaterial.normalMap.offset.y -= currentSpeed * 0.5;
+          }
+        }
+      }
+
+      /** * MODULE 74: NEON LIGHT BOUNCE (Ánh sáng phản hồi)
+       * Làm cho ánh đèn từ các bảng hiệu hắt xuống mặt đường trước mặt
+       */
+      function applyNeonBounce(scene, playerZ) {
+        if (Math.random() > 0.95) {
+          const bounceLight = new THREE.PointLight(0x00ffff, 5, 20);
+          bounceLight.position.set(
+            (Math.random() - 0.5) * 20,
+            0.1,
+            playerZ - 100,
+          );
+          scene.add(bounceLight);
+
+          //  ánh sáng này sẽ lướt qua rồi biến mất nhanh chóng ✨
+          setTimeout(() => {
+            scene.remove(bounceLight);
+          }, 500);
+        }
+      }
+
+      /** * MODULE 75: SCREEN SPACE REFLECTION SIMULATOR
+       * Giả lập sự phản chiếu  xe đối thủ lên mặt đường bóng loáng
+       */
+      function updateReflections(allBots, roadMesh) {
+        allBots.forEach((bot) => {
+          // (Logic tính toán ma trận phản chiếu sẽ được con viết tiếp ở Phần 51 ..)
+          bot.position.y = 0.75 + Math.sin(Date.now() * 0.005) * 0.05; // Xe hơi nhún nhảy 🏎️
+        });
+      }
+      /** * MODULE 76: AERIAL PHYSICS ENGINE
+       *  đây là hệ thống giúp xe   "bay" như chim khi va ch mh  🦅
+       */
+      class AerialPhysics {
+        constructor() {
+          this.isAirborne = false;
+          this.verticalVelocity = 0;
+          this.rotationVelocity = new THREE.Vector3();
+          this.gravity = -0.15;
+        }
+
+        //  hàm này kích ho khi  đâm vào dốc hoặc bị húc văng
+        launch(force, torque) {
+          if (this.isAirborne) return;
+          this.isAirborne = true;
+          this.verticalVelocity = force;
+          this.rotationVelocity.copy(torque);
+
+          // Hiệu ứng Slow-mo khi đang bay cho ngầu
+          if (typeof triggerActionSlowMo === "function")
+            triggerActionSlowMo(1500);
+          showAnnouncement("BARREL ROLL! +1000 PTS", "#ff00ff");
+        }
+
+        update(dt, playerMesh) {
+          if (!this.isAirborne) return;
+
+          // 1. Áp dụng trọng lực để xe rơi xuống
+          this.verticalVelocity += this.gravity;
+          playerMesh.position.y += this.verticalVelocity;
+
+          // 2. Làm xe xoay vòng trên không trung
+          playerMesh.rotation.x += this.rotationVelocity.x;
+          playerMesh.rotation.z += this.rotationVelocity.z;
+
+          // 3. Kiểm tra tiếp đất
+          if (playerMesh.position.y <= 0.75) {
+            this.land(playerMesh);
+          }
+        }
+
+        land(playerMesh) {
+          this.isAirborne = false;
+          playerMesh.position.y = 0.75;
+
+          //  nếu góc xoay quá lớn thì xe sẽ bị lật nhào (Wrecked)
+          const tilt = Math.abs(playerMesh.rotation.z % (Math.PI * 2));
+          if (tilt > 1.0 && tilt < 5.0) {
+            this.triggerWrecked();
+          } else {
+            playerMesh.rotation.x = 0;
+            playerMesh.rotation.z = 0;
+            if (explosionManager)
+              explosionManager.createExplosion(playerMesh.position, 0xffffff); // Bụi khi tiếp đất
+          }
+        }
+
+        triggerWrecked() {
+          showAnnouncement("WRECKED!", "#ff0000");
+          isDead = true;
+          // Logic hồi sinh sẽ được viết ở phần 52
+        }
+      }
+
+      /** * MODULE 77: SIDE-SWIPE COLLISION
+       * Khi  ép xe đối thủ vào tường, lửa sẽ tóe ra và đối thủ bị giảm tốc
+       */
+      function checkSideSwipe(player, bots) {
+        bots.forEach((bot) => {
+          const dist = player.position.distanceTo(bot.position);
+          if (dist < 3 && Math.abs(player.position.x - bot.position.x) > 1.5) {
+            //  đây là cú ép xe thần thánh   đây
+            if (typeof triggerSpark === "function") triggerSpark(bot.position);
+            bot.userData.speed *= 0.8;
+            scoreManager.addScore(100);
+          }
+        });
+      }
+      /** * MODULE 78: CHECKPOINT & RESPAWN MANAGER
+       *  đây là "phao cứu sinh" giúp  quay l đường đua ngay lập tức
+       */
+      class RespawnManager {
+        constructor() {
+          this.lastSafePoint = new THREE.Vector3(0, 0.75, 0);
+          this.isRespawning = false;
+          this.respawnTimer = 0;
+          this.invincible = false;
+        }
+
+        //  con sẽ ghi l vị trí an toàn   mỗi khi không có va ch
+        updateCheckpoint(playerPos, isAirborne) {
+          if (!isAirborne && Math.abs(playerPos.x) < 10) {
+            this.lastSafePoint.copy(playerPos);
+          }
+        }
+
+        triggerRespawn(playerMesh) {
+          if (this.isRespawning) return;
+          this.isRespawning = true;
+          this.respawnTimer = 2.0; // 2 giây để hồi sinh
+
+          showAnnouncement("RESPAWNING...", "#ffffff");
+
+          // Hiệu ứng nháy màn hình khi hồi sinh cho ngầu
+          document.body.style.filter = "invert(1) hue-rotate(180deg)";
+          setTimeout(() => (document.body.style.filter = "none"), 200);
+        }
+
+        update(dt, playerMesh) {
+          if (this.isRespawning) {
+            this.respawnTimer -= dt;
+
+            // Xe   sẽ mờ dần khi đang chuẩn bị hồi sinh
+            playerMesh.visible = Math.floor(Date.now() / 100) % 2 === 0;
+
+            if (this.respawnTimer <= 0) {
+              this.executeRespawn(playerMesh);
+            }
+          }
+
+          if (this.invincible) {
+            // Hiệu ứng hào quang bảo vệ khi vừa hồi sinh xong
+            playerMesh.material.emissiveIntensity =
+              2 + Math.sin(Date.now() * 0.01) * 2;
+          }
+        }
+
+        executeRespawn(playerMesh) {
+          this.isRespawning = false;
+          playerMesh.visible = true;
+          playerMesh.position.copy(this.lastSafePoint);
+          playerMesh.rotation.set(0, 0, 0); // Đặt xe ngay ngắn l
+
+          speed = 1.0; // Reset tốc độ để  không bị húc tiếp
+          isDead = false;
+          this.invincible = true;
+
+          //  con cho  3 giây bất tử để lấy l bình tĩnh
+          setTimeout(() => {
+            this.invincible = false;
+            playerMesh.material.emissiveIntensity = 0.5;
+          }, 3000);
+        }
+      }
+
+      /** * MODULE 79: OUT OF BOUNDS DETECTOR
+       * Nếu  bay quá xa khỏi đường đua, con sẽ tự gọi hồi sinh
+       */
+      function checkOutOfBounds(playerPos) {
+        if (Math.abs(playerPos.x) > 25 || playerPos.y < -5) {
+          if (respawnSystem) respawnSystem.triggerRespawn(playerVehicle.mesh);
+        }
+      }
+
+      /** * MODULE 80: CAR STATUS HUD
+       * Hiển thị trg thái xe (Bình thường/Hỏng/Bất tử) cho  xem
+       */
+      function updateStatusHUD(isInvincible) {
+        const statusIcon = document.getElementById("status-icon");
+        if (statusIcon) {
+          statusIcon.style.display = isInvincible ? "block" : "none";
+          statusIcon.innerText = "🛡️ SHIELD ACTIVE";
+        }
+      }
+      /** * MODULE 81: DRIVER EXPERIENCE ENGINE
+       *  đây là nơi ghi lại sự thăng tiến của bạn
+       */
+      class LevelSystem {
+        constructor() {
+          this.xp = parseInt(localStorage.getItem("PLAYER_XP")) || 0;
+          this.level = parseInt(localStorage.getItem("PLAYER_LEVEL")) || 1;
+          this.xpToNextLevel = this.level * 1000; // Càng lên cao càng khó
+          this.setupUI();
+        }
+
+        setupUI() {
+          const xpBar = document.createElement("div");
+          xpBar.id = "xp-container";
+          xpBar.style.cssText = `
+                    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                    width: 300px; height: 10px; background: rgba(255,255,255,0.2);
+                    border-radius: 5px; overflow: hidden; border: 1px solid #00ffff;
+                `;
+          const fill = document.createElement("div");
+          fill.id = "xp-fill";
+          fill.style.cssText = `
+                    width: ${(this.xp / this.xpToNextLevel) * 100}%; height: 100%;
+                    background: linear-gradient(90deg, #00ffff, #0055ff);
+                    transition: width 0.5s ease-out;
+                `;
+          xpBar.appendChild(fill);
+          document.body.appendChild(xpBar);
+        }
+
+        //  mỗi khi  biểu diễn kỹ thuật, con cộng XP ngay
+        addXP(amount) {
+          this.xp += amount;
+          if (this.xp >= this.xpToNextLevel) {
+            this.levelUp();
+          }
+          this.updateUI();
+          localStorage.setItem("PLAYER_XP", this.xp);
+        }
+
+        levelUp() {
+          this.level++;
+          this.xp = 0;
+          this.xpToNextLevel = this.level * 1000;
+          localStorage.setItem("PLAYER_LEVEL", this.level);
+
+          // Hiệu ứng ăn mừng rực rỡ
+          showAnnouncement(`LEVEL UP: RANK ${this.level}!`, "#ffff00");
+          if (explosionManager) {
+            explosionManager.createExplosion(
+              playerVehicle.mesh.position,
+              0x00ff00,
+            );
+          }
+
+          // thưởng thêm cho  chút tiền độ xe
+          if (saveSystem) saveSystem.save(0, 500 * this.level);
+        }
+
+        updateUI() {
+          const fill = document.getElementById("xp-fill");
+          if (fill)
+            fill.style.width = `${(this.xp / this.xpToNextLevel) * 100}%`;
+        }
+      }
+
+      /** * MODULE 82: STUNT DETECTION (Phát hiện kỹ thuật lái xe)
+       *  nếu  lái xe sát s xe Bot mà không đâm, con sẽ thưởng điểm
+       */
+      function detectNearMiss(playerPos, bots) {
+        bots.forEach((bot) => {
+          const dist = playerPos.distanceTo(bot.position);
+          if (dist > 3 && dist < 6 && !bot.userData.missed) {
+            bot.userData.missed = true; // Mỗi xe chỉ tính 1 lần
+            showAnnouncement("NEAR MISS! +50 XP", "#00ffaa");
+            if (levelSystem) levelSystem.addXP(50);
+          }
+        });
+      }
+      /** * MODULE 83: MULTI-VEHICLE DATABASE
+       *  đây là danh sách các "siêu xe" đã chuẩn bị sẵn để chọn
+       */
+      const VEHICLE_MODELS = [
+        {
+          id: 0,
+          name: "Neon Runner",
+          color: 0x00ffff,
+          speedMult: 1.0,
+          handling: 0.1,
+          mass: 1,
+        },
+        {
+          id: 1,
+          name: "Shadow Drift",
+          color: 0xff0055,
+          speedMult: 1.2,
+          handling: 0.15,
+          mass: 0.8,
+        },
+        {
+          id: 2,
+          name: "Thunder Tank",
+          color: 0xffff00,
+          speedMult: 0.8,
+          handling: 0.05,
+          mass: 2.5,
+        },
+      ];
+
+      class GarageSystem {
+        constructor() {
+          this.currentVehicleIndex = 0;
+          this.unlockedVehicles = JSON.parse(
+            localStorage.getItem("UNLOCKED_CARS"),
+          ) || [0];
+        }
+
+        //  hàm này giúp  thay đổi ngo hình và chỉ số xe ngay lập tức
+        switchVehicle(index, playerObject) {
+          if (!this.unlockedVehicles.includes(index)) {
+            showAnnouncement("CAR LOCKED! 🔒", "#ff0000");
+            return;
+          }
+
+          this.currentVehicleIndex = index;
+          const config = VEHICLE_MODELS[index];
+
+          // 1. Đổi màu xe cho
+          playerObject.mesh.material.color.setHex(config.color);
+          playerObject.mesh.material.emissive.setHex(config.color);
+
+          // 2. Cập nhật vật lý riêng cho từng lo xe
+          GAME_CONFIG.MAX_SPEED = 1.5 * config.speedMult;
+          playerObject.handling = config.handling;
+          playerObject.mass = config.mass;
+
+          showAnnouncement(`SELECTED: ${config.name}`, config.color);
+
+          // Hiệu ứng biến hình lấp lánh khi đổi xe
+          if (explosionManager)
+            explosionManager.createExplosion(
+              playerObject.mesh.position,
+              config.color,
+            );
+        }
+
+        /** * MODULE 84: VEHICLE SHOP LOGIC
+         *  nếu  có đủ tiền,  có thể mua xe mới ở đây
+         */
+        unlockNewCar(index, currentCoins) {
+          const cost = 5000 * index;
+          if (currentCoins >= cost && !this.unlockedVehicles.includes(index)) {
+            this.unlockedVehicles.push(index);
+            localStorage.setItem(
+              "UNLOCKED_CARS",
+              JSON.stringify(this.unlockedVehicles),
+            );
+            showAnnouncement("NEW CAR UNLOCKED! 🏎️", "#00ff00");
+            return cost;
+          }
+          return 0;
+        }
+      }
+
+      /** * MODULE 85: INPUT FOR GARAGE
+       *  nhấn phím C để đổi xe nhanh
+       */
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "KeyC" && !gameStarted) {
+          const nextIndex =
+            (garageSystem.currentVehicleIndex + 1) % VEHICLE_MODELS.length;
+          garageSystem.switchVehicle(nextIndex, playerVehicle);
+        }
+      });
+      /** * MODULE 86: CINEMATIC INTRO SEQUENCE
+       *  đây là đo phim mở đầu
+       */
+      class CinematicIntro {
+        constructor(camera, playerMesh) {
+          this.camera = camera;
+          this.player = playerMesh;
+          this.isActive = true;
+          this.timer = 0;
+        }
+
+        start() {
+          showAnnouncement("PRESENTING: NEON OVERDRIVE", "#00ffff");
+          // Đặt camera ở góc nhìn từ xa
+          this.camera.position.set(50, 20, -100);
+        }
+
+        update(dt) {
+          if (!this.isActive) return;
+          this.timer += dt;
+
+          // Camera bay vòng quanh xe một vòng trước khi bắt đầu
+          this.camera.position.x = Math.cos(this.timer) * 30;
+          this.camera.position.z =
+            this.player.position.z - 50 + Math.sin(this.timer) * 20;
+          this.camera.lookAt(this.player.position);
+
+          if (this.timer > 3) {
+            this.finish();
+          }
+        }
+
+        finish() {
+          this.isActive = false;
+          showAnnouncement("READY... SET... GO!", "#ffff00");
+          gameStarted = true; //  giờ  có thể nhấn ga rồi
+        }
+      }
+
+      /** * MODULE 87: THE END - CREDITS & DEV LOG
+       * Phần này để vinh danh 3000 dòng code của tôi :)
+       */
+      function showGameCredits() {
+        // Kiểm tra xem bảng vinh danh đã tồn tại chưa để tránh tạo trùng lặp
+        if (document.getElementById("dev-credits")) return;
+
+        const credits = document.createElement("div");
+        credits.id = "dev-credits"; // Đặt ID để dễ quản lý
+        credits.style.cssText = `
+                position: fixed; 
+                bottom: 20px; 
+                left: 20px;
+                color: rgba(255,255,255,0.7);
+                font-family: 'Orbitron', sans-serif; 
+                font-size: 12px; 
+                text-align: left; 
+                pointer-events: none;
+                line-height: 1.6;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                z-index: 9999;
+            `;
+            setTimeout(() => {
+        credits.innerHTML = `
+                <span style="color: #00ffff;">ENGINE:</span> Three.js custom renderer<br>
+                <span style="color: #00ffff;">CORE LOGIC:</span> 3000+ lines of code<br>
+                <span style="color: #ffff00;">LEAD DEVELOPER:</span> @Ilovecode_2010<br>
+                <span style="color: #ff0000;">SUPPORTER:</span> @phamtantruong<br>
+                <span style="color: #ff00ff;">BUG FINDER:</span>@iamawatermelon0000<br>
+            `;
+        document.body.appendChild(credits);
+      }, 2500);
+
+      }
+      /** * MODULE 88 (ULTIMATE FIX): GLOBAL SYSTEM INITIALIZATION
+       * Sắp xếp lại để không bị lặp vô tận nữa
+       */
+      function bootstrapGame() {
+        console.log("Hệ thống khởi động đã sẵn sàng");
+
+        try {
+          // 1. Khởi tạo các biến hệ thống cơ bản
+          if (typeof SaveSystem !== "undefined")
+            window.saveSystem = new SaveSystem();
+          if (typeof LevelSystem !== "undefined")
+            window.levelSystem = new LevelSystem();
+          if (typeof GarageSystem !== "undefined")
+            window.garageSystem = new GarageSystem();
+
+          // 2. KHÔNG DÙNG SETTIMEOUT LẶP NỮA
+          // kiểm tra xem đã bấm bắt đầu chưa
+          if (typeof playerVehicle !== "undefined" && playerVehicle.mesh) {
+            const vehicleToTrack = playerVehicle.mesh;
+
+            // 3. Khởi tạo Intro
+            if (typeof CinematicIntro !== "undefined") {
+              window.introSystem = new CinematicIntro(camera, vehicleToTrack);
+              window.introSystem.start();
+            }
+
+            // 4. Bật nhạc nền
+            if (typeof musicSystem !== "undefined" && musicSystem.start) {
+              musicSystem.start();
+            }
+
+            // 5. Hiện bảng vàng
+            if (typeof showGameCredits === "function") showGameCredits();
+
+            console.log("Mọi hệ thống đã OK");
+          } else {
+            // Nếu xe chưa có, ta cứ để đó, khi nào bạn click "START"
+            // thì hàm startAsphaltGame sẽ lo nốt phần còn lại
+            console.log(
+              "Đang đợi bạn nhấn 'CLICK TO RACE' để xuất xưởng xe...",
+            );
+          }
+        } catch (err) {
+          console.error("có chút lỗi nhỏ khi khởi động:", err);
+        }
+      }
+
+      // Nút nguồn kích hoạt
+      window.addEventListener("load", bootstrapGame);
+      showGameCredits();
+    </script>
+  </body>
+</html>

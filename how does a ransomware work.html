@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title msg="hello there">How does a ransomware work?</title>  
+  </head>
+
+  <body>
+    <button type="button" onclick="download()">Download super super super duper good file (from an unknown user)</button>
+
+    <p id="print1"></p>
+
+    <script>
+      let balance = 1000;
+
+      function download() {
+          document.getElementById("print1").textContent = "Downloading...";
+
+          setTimeout(() => {
+              document.getElementById("print1").textContent = "Downloaded!";
+
+              let askOpen = confirm("Open file?")
+
+              if (!askOpen) {
+                alert("You've successfully escaped the malware. Don't download & open strange files from the internet!");
+                window.location.href = "about:blank";
+              } else {
+                document.body.innerHTML = "";
+
+                document.body.style.background = "black";
+
+                let print2 = document.createElement("p");
+                let paybtn = document.createElement("button");
+
+                print2.style.color = "red";
+                print2.style.textAlign = "center";
+                print2.style.fontFamily = "monospace";
+                print2.style.fontSize = 25 + 'px';
+        print2.textContent = "Oops! Your important files have been encrypted. Now you will have to pay $800 to decrypt.";
+
+                paybtn.textContent = "Pay HERE 😈";
+
+                document.body.appendChild(print2);
+                document.body.appendChild(paybtn);
+
+                paybtn.onclick = () => {
+                    let enterAmount = prompt(`How much do you wanna pay? Your current balance: ${balance}`);
+
+                    if (enterAmount > balance) {
+
+                          document.body.innerHTML = "";
+                          document.body.style.background = 'white';
+
+                      alert("Your balance is too small. Your important files have been deleted.");
+                      alert("Redirecting... (NOT SPONSORED)")
+
+                      setTimeout(() => {
+                  window.location.href = "https://www.fortinet.com/resources/cyberglossary/how-to-prevent-ransomware";
+                      }, 5000);
+                      return;
+
+                    } else if (!enterAmount) {
+
+                          document.body.innerHTML = "";
+                          document.body.style.background = 'white';
+
+                        alert("You did not do anything. Your files are lost.");
+                        alert("Redirecting... (NOT SPONSORED)");
+
+                      setTimeout(() => {
+                  window.location.href = "https://www.fortinet.com/resources/cyberglossary/how-to-prevent-ransomware";
+                      }, 5000);
+
+                    } else if (enterAmount <= 0) {
+                        alert("Your files are lost.");
+
+                      setTimeout(() => {
+                  window.location.href = "https://www.fortinet.com/resources/cyberglossary/how-to-prevent-ransomware";
+                      }, 5000);
+
+                    } else {
+                      alert("You paid the attacker(s).");
+
+                      if (Math.random() < 0.01) {
+                          document.body.innerHTML = "";
+                          document.body.style.background = 'white';
+
+                          let printRes = document.createElement("p");
+                          printRes.style.textAlign = "center";
+                          printRes.textContent = "You have escaped, but with a price. Get tips on how to prevent these attacks: https://www.fortinet.com/resources/cyberglossary/how-to-prevent-ransomware (NOT SPONSORED)";
+
+                          document.body.appendChild(printRes);
+                      } else {
+                          document.body.innerHTML = "";
+                          document.body.style.background = 'white';
+
+                          alert("Nothing happened. The attacker did not decrypt your files, and they are lost forever.")
+                          alert("Redirecting... (NOT SPONSORED)");
+
+                          setTimeout(() => {
+                    window.location.href = "https://www.fortinet.com/resources/cyberglossary/how-to-prevent-ransomware"
+                          }, 5000);
+                      }
+                    }
+                }
+              }
+          }, 2500);
+      }
+
+      /* 
+      NOTES FOR DEVS 
+      case 1: no install: true ending [WORKS]
+      case 2: install - not enough money: bad ending [WORKS]
+      case 3: install - pay - unlucky: worst ending [ ]
+      case 4: install - pay - lucky: good ending [ ]
+      */
+     
+     /*
+     yo i picked a random website, if it has anytrhing sus pls tell met
+     */
+    </script>
+  </body>
+</html>

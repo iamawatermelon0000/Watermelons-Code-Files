@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <style>
+    #btn {
+      background: linear-gradient(to right, #0077ff, #00aeef, #8A2be2, #a020f0);
+
+      font-style:italic;
+      font-family: 'Courier New', Courier, monospace;
+
+      display: inline-block;
+
+    }
+
+
+    .container {
+        display: flex;
+
+        justify-content: center;
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
+    p {
+      background: linear-gradient(to right, #ffffff, #cccccc, #777777, #000000);
+
+      font-weight: bold;
+      font-style: italic;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+      color: red;
+      text-align: center;
+
+    }
+
+    body {
+      background: linear-gradient(to right, #0a0a0a, #00f0ff)
+    }
+  </style>
+
+      <script>
+      function random() {
+        let ask = confirm("Open another window?")
+        let url = "https://en.wikipedia.org/wiki/Special:Random";
+
+        if (ask) window.open(url);
+        if (!ask) window.location.href = url;
+      }
+    </script>
+
+  </head>
+
+  <body>
+    <div class="container">
+
+      <div>
+    <p title="hi guys ill try my best to decorate it">Click the button to random a random article in Wikipedia!</p>
+      </div>
+
+    <button type="button" id="btn" onclick="random()" title="how much would you rate it out of 10?">Random HERE!</button>
+    </div>
+
+  </body>
+
+</html>

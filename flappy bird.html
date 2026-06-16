@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        #bird {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: yellow;
+            position: absolute;
+            border: 2px solid black;
+        }
+
+        .obs {
+            width: 25px;
+            height: 450px;
+            background: red;
+            border: 2px solid black;
+            position: absolute;
+        }
+
+        .text {
+            font-size: medium;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace, italic;
+            color: red;
+        }
+
+        #score {
+            font-weight: bold;
+            color: yellow;
+            font-family: 'Times New Roman', Times, serif, bold;
+            font-size: 20px;
+        }
+
+        body {
+            background: green;
+        }
+
+    </style>
+    <body>
+        <div class="text">ORIGINAL MADE BY NGUYỄN HÀ ĐÔNG - THIS IS A FANMADE.</div>
+        <div class="text">MADE BY @iamawatermelon0000</div>
+        <div id="score">Score: </div>
+        <div id="bird"></div>
+
+        <div class="obs" id="obstace1"></div>
+        <div class="obs" id="obstace2"></div>
+
+        <script>
+            let player = document.getElementById("bird");
+
+            let veloc = 0;
+            let gra = 0.2;
+
+            let obs1 = document.getElementById("obstace1");
+            let obs2 = document.getElementById("obstace2");
+
+            let x = 0, y = 400;
+            let posX = 0, posY = 0;
+
+            let loop;
+
+            let point = 0;
+            let print = document.getElementById("score");
+
+            document.addEventListener("keydown", e => {
+                if (e.code === "KeyW" || e.code === "ArrowUp" || e.code === "Space") {
+                    y -= 10;
+                } else if (e.code === "KeyS" || e.code === "ArrowDown") {
+                    y += 10;
+                }
+
+                if (e.code === "KeyA" || e.code === "ArrowLeft") {
+                    x -= 10;
+                } else if (e.code === "KeyD" || e.code === "ArrowRight") {
+                    x += 10;
+                };
+
+                x = Math.max(0, x), y = Math.max(0, y);
+
+                player.style.top = y + 'px';
+                player.style.left = x + 'px';
+            });
+
+            function fall() {
+                setInterval(() => {
+                veloc += gra;
+                y += veloc;
+
+                if (y < -500) {
+                    y = 400
+                }
+
+                player.style.top = y + 'px';
+            
+                }, 500);
+            }
+
+            function rerollPos() {
+                const gap = 200;
+
+                posY = Math.floor(Math.random() * (window.innerHeight));
+                posX = window.innerWidth;
+
+                obs1.style.left = posX + 'px';
+                obs2.style.left = posX + 'px';
+
+                obs1.style.height = posY + 'px';
+                obs2.style.top = (gap + posY) + 'px';
+
+                loop = setInterval(() => {
+                const mov = player.getBoundingClientRect();
+                const mov1 = obs1.getBoundingClientRect();
+                const mov2 = obs2.getBoundingClientRect();
+
+                posX -= 10;
+                obs1.style.left = posX + 'px';
+                obs2.style.left = posX + 'px';
+
+                setInterval(() => {
+                    point++;
+                print.textContent = `Score: ${point}`;
+                }, 1000);
+
+                if ((mov.left < mov1.right &&
+                        mov.right > mov1.left &&
+                        mov.top < mov1.bottom &&
+                        mov.bottom > mov1.top)
+                                ||
+                        (mov.left < mov2.right &&
+                        mov.right > mov2.left &&
+                        mov.top < mov2.bottom &&
+                        mov.bottom > mov2.top)) 
+                 {
+                    alert("You lost!");
+                    clearInterval(loop);
+                    point = 0;
+
+                    setTimeout(() => {
+                    rerollPos();
+                    return;
+                    }, 500);
+                }
+
+                if (posX < -350) {
+                    clearInterval(loop);
+
+                    setTimeout(() => {
+                    rerollPos();
+                    return;
+                    }, 500);
+                }
+
+                if (posX < x) {
+                    clearInterval(loop);
+
+                   setTimeout(() => {
+                    rerollPos();
+                    return;
+                    }, 500);
+            }
+                }, 160);
+            }
+
+            rerollPos();
+            fall();
+        </script>
+    </body>
+</html>

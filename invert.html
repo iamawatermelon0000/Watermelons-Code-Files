@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <style>
+            #box {
+                width: 50px;
+                height: 50px;
+                background: lime;
+                border :2px solid red;
+                display: inline-block;
+                position: absolute;
+            }
+
+            #start {
+                color: red;
+                text-align: center;
+                font-size: 25px;
+            }
+
+        </style>
+        <div>Hold [SHIFT] to go faster.</div>
+
+        <div id="box"></div>
+
+        <div>
+
+        <p id="start">
+            START HERE---------------------------------------------------------------------------------------------FINISH HERE
+        </p>
+
+        </div>
+
+        <script>
+            let rec = document.querySelector("#box");
+
+            let x = 0, y = 0;
+
+            document.addEventListener("keydown", e => {
+                if (e.key === "w") y += 10;
+                if (e.key === "s") y -= 10;
+
+                if (e.key === "a") x += 10;
+                if (e.key === "d") x -= 10;
+
+                if (e.key === "W") y += 20;
+                if (e.key === "S") y -= 20;
+
+                if (e.key === "A") x += 20;
+                if (e.key === "D") x -= 20;
+
+                rec.style.top = y +'px';
+                rec.style.left = x + 'px';
+
+            })
+        </script>
+    </body>
+</html>

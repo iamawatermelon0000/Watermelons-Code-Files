@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Avaiable Files Below! :D</h1>
+<div id="menu"></div>
+
+<script>
+fetch("https://api.github.com/repos/iamawatermelon0000/Watermelons-Codes/contents/")
+.then(res => res.json())
+.then(files => {
+    const menu = document.getElementById("menu");
+
+    files
+    .filter(file => file.name.endsWith(".html"))
+    .filter(file => file.name !== "index.html")
+    .forEach(file => {
+        menu.innerHTML += `
+            <a href="./${file.name}">
+                ${file.name}
+            </a><br>
+        `;
+    });
+});
+</script>
+
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    h1 {
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    #menu {
+        font-weight: bold;
+        font-style: italic;
+        border: 2px solid black;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Color Picker (technically)</title>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      #hexSection, #rgbSection {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 25px;
+
+        font-size: 20px;
+      }
+
+      #box {
+        width: 100px;
+        height: 100px;
+        font-size: 20px;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="hexSection">HEX Section:
+      <input type="text" id="hexValue" placeholder="Enter hex here...">
+      <button type="button" onclick="changeHex()">View HEX Color</button>
+    </div>
+
+    <div id="rgbSection">R_G_B Section:
+      <input type="text" id="rgb" placeholder="Enter RGB value (e.g. 21 23 45)">
+      <button type="button" onclick="changeRGB()">View RGB Color</button>
+    </div>
+
+    <div id="box">Color will be shown here</div>
+
+    <script>
+      let b = document.getElementById("box");
+
+      function changeHex() {
+        let hex = document.getElementById("hexValue").value;
+
+        if (!hex) return;
+        if (!hex.startsWith("#")) hex = `#${hex}`;
+        if (!/^[a-zA-Z0-9]/.test(hex)) alert("Invalid HEX!");
+        hex = hex.toUpperCase();
+
+        b.style.background = hex;
+        document.getElementById('hexValue').value = "";
+        
+      }
+
+      function changeRGB() {
+        let rgbValue = document.getElementById("rgb").value;
+        let rgb = rgbValue.split(" ");
+
+        if (!rgb || !rgbValue) return;
+        if (rgb.length !== 3) return;
+        if (rgb[0] > 255 || rgb[1] > 255 || rgb[2] > 255) return;
+        if (rgb[0] < 0 || rgb[1] < 0 || rgb[2] < 0) return;
+
+        while (rgb.length > 3) {
+          rgb.pop();
+        }
+        
+
+        b.style.background = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+        document.getElementById('rgb').value = "";
+      }
+    </script>
+  </body>
+</html>

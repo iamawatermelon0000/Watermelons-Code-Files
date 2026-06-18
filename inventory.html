@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>inventory</title>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 25px;
+
+        background: linear-gradient(to right, grey, black, burlywood);
+      }
+
+      #main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 25px;
+        color: red;
+
+        border: 5px solid black;
+      }
+
+      button {
+        width: 275px;
+        height: 75px;
+
+        font-size: 25px;
+        font-weight: bold;
+        font-style: italic;
+        font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="main">
+      <p id="goal">Goal: </p>
+      <p id="inventory">You found nothing...</p>
+      <p id="allItems">Your Items:</p>
+      <p id="status">(None)</p>
+      <button type="button" onclick="addItem()">Add Item</button>
+    </div>
+
+    <script>
+      const items  = [
+        "water bottle",
+        "wood",
+        "old phone",
+        "battery",
+        "shell",
+        "broken laptop",
+        "gurt",
+        "banana",
+        "watermelon",
+        "blanket",
+        "table",
+        "cable",
+        "monitor",
+        "mosue",
+        "clock",
+        "typescript",
+        "javascript"
+      ];
+      const rarities = [
+        "Common",
+        "Uncommon",
+        "Rare",
+        "Legendary",
+        "Magnificent",
+        "Ultra",
+        "Mythical",
+        "EXOTIC",
+        "UNSEEN",
+        "TRANSCENDENT",
+        "ASCENDED"
+      ];
+
+      let prGoal = document.getElementById("goal");
+      let item_goal;
+      
+      let prItem = document.getElementById("inventory");
+      let prAll = document.getElementById("allItems");
+      let item = [];
+      let i;
+      let rarity;
+
+      let prStatus = document.getElementById("status");
+      let score = 0;
+
+      function addItem() {
+        i = items[Math.floor(Math.random() * items.length)];
+        item.push(i);
+        rarity = rarities[Math.floor(Math.random() * rarities.length)];
+
+        while (item.length > 5) {
+          item.shift();
+          console.warn("while active")
+        }
+
+        prItem.textContent = `Your found: a/an [${rarity}] ${i}!`;
+        prAll.textContent = `Your Items: ${item.join(', ')}`;
+
+        if (i === item_goal) {
+          prStatus.textContent = `Goal reached! Randomizing new goal...`;
+          score++;
+
+          setTimeout(() => {
+            prStatus.textContent = "(None)";
+            changeGoal();
+          }, 1500);
+        }
+
+        if (score >= 10 && Math.random() < 0.5) {
+            prStatus.textContent = "You've unlocked a secret tool!"
+            let ask = confirm('Use tool?');
+
+            if (ask) {
+              for (let index = 0; index < 10; index++) {
+                i += items[Math.floor(Math.random() * items.length)];
+                item.push(i);
+                rarity = rarities[Math.floor(Math.random() * rarities.length)];
+
+                prItem.textContent = `Your found: a ${rarity} ${i}!`;
+                prAll.textContent = `Your Items: ${item.join(', ')}`;
+              }
+            }
+
+            score -= 10;
+          }
+      }
+
+      function changeGoal() {
+        item_goal = items[Math.floor(Math.random() * items.length)];
+        prGoal.textContent = `Goal: Obtain 1 ${item_goal}`
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        try {
+          changeGoal();
+        } catch (err) {
+          console.log(err)
+        };
+        console.warn("gaem loaded")
+      })
+    </script>
+  </body>
+</html>

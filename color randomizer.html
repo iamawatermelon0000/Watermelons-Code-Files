@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Color Randomizer</title>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 50px;
+      }
+
+      #modeSection, #resultSection {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 75px;
+
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 30px;
+      }
+
+      #resultSection {
+        flex-direction: column;
+      }
+
+      textarea {
+        width: 575px;
+        height: 120px;
+        
+        resize: none;
+
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+        font-size: 25px;
+        text-align: center;
+      }
+
+      button {
+        width: 250px;
+        height: 100px;
+
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-style: italic;
+        font-weight: bold;
+        font-size: 25px;
+      }
+
+    </style>
+  </head>
+
+  <body>
+
+    <div id="modeSection">Mode:
+      <button id="h" type="button" onclick="hex()">Hex (#)</button>
+      <button id="g" type="button" onclick="rgb()">RGB (Red Green Glue)</button>
+    </div>
+
+    <div id="resultSection">
+      <textarea id="result" readonly>Result will be shown here!</textarea>
+      <button type="button" onclick="generate()">Generate</button>
+    </div>
+
+    <script>
+      let prRes = document.getElementById("result");
+      let res = "";
+      let mode = null;
+
+      const hexChars = "ABCDEF0123456";
+
+      let r;
+      let g;
+      let b;
+
+      let b1 = document.getElementById("h");
+      let b2 = document.getElementById("g");
+
+      let cf = false;
+
+      function hex() {
+        mode = "Hex";
+
+        b1.disabled = true;
+        b2.disabled = false;
+      }
+      function rgb() {
+        mode = "RGB";
+
+        b1.disabled = false;
+        b2.disabled = true;
+      }
+      function removedFunction() {
+        cf = !cf;
+        alert(cf.toString().toUpperCase())
+      }
+      
+      function generate() {
+
+        res = "";
+        console.warn(`Randomized, mode: ${mode}`)
+
+        if (!mode) {
+          alert("(!) Please select a mode (HEX/RGB value)");
+          return;
+        }
+
+        if (mode === "Hex") {
+
+          for (let i = 0; i < 8; i++) {
+            res += hexChars[Math.floor(Math.random() * hexChars.length)];
+          }
+
+
+          if (!res.startsWith("#")) res = `#${res}`;
+
+          prRes.value = `Result: ${res}`;
+          document.body.style.background = res;
+        }
+
+        if (mode === "RGB") {
+          r = Math.floor(Math.random() * 255) + 1;
+          g = Math.floor(Math.random() * 255) + 1;
+          b = Math.floor(Math.random() * 255) + 1;
+
+          prRes.value = `Result: [Red: ${r}], [Green: ${g}], [Blue: ${b}] or rgb(${r}, ${g}, ${b})`;
+          document.body.style.background = `rgb(${r}, ${g}, ${b})`
+        }
+
+        if (res) console.warn(`Result: ${res}`);
+        if (r && g && b) console.warn(`Result: ${r}, ${g}, ${b}`)
+      }
+    </script>
+  </body>
+</html>

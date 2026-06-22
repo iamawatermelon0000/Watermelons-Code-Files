@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>watermelon</title>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+
+        background: linear-gradient(to right, white, red, lime, white)
+      }
+
+      #container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+
+        text-align: center;
+
+        font-size: 30px;
+        font-weight: bold;
+        font-style: italic;
+
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="container">
+    <img title="Click me!" id="watermelongpng" width="250px" height="250px" src="main pic.png">
+    <p>Watermelon</p>
+    </div>
+  
+    <script>
+      let img = document.getElementById("watermelongpng");
+
+      let x, y;
+      let posX, posY;
+
+      let count = 0;
+      let iRandom;
+
+      let math_random;
+
+      img.onclick = () => {
+        random();
+        count++;
+
+        if (count > 15 && !iRandom) {
+
+          if (!iRandom) {
+            iRandom = setInterval(() => {
+              random();
+            }, 16);
+          };
+
+        }
+      }
+
+      function random() {
+
+        math_random = Math.random();
+
+        if (!iRandom) {
+        console.warn(`Clicked, randomized: ${math_random}`);
+        console.warn(`Comparasion: Smaller/Less than 0.5: ${math_random < 0.5}, Greater than 0.5: ${math_random > 0.5}`);
+        console.warn(`Number of clicks: ${count}`)
+        }
+
+        if (math_random < 0.5) {
+          let ig = document.createElement("img");
+
+          ig.style.width = 150 + 'px';
+          ig.style.height = 150 + 'px';
+
+          ig.src = "main pic.png";
+          ig.style.position = 'absolute';
+
+          x = Math.floor(Math.random() * (window.innerWidth - 150));
+          y = Math.floor(Math.random() * (window.innerHeight - 150));
+
+          ig.style.left = x + 'px';
+          ig.style.top = y + 'px';
+
+          document.body.appendChild(ig);
+        } else {
+          let txt = document.createElement("div");
+
+          txt.textContent = "🍉";
+          txt.style.fontSize = 30 + 'px';
+          txt.style.position = 'absolute';
+
+          posX = Math.floor(Math.random() * (window.innerWidth - 150));
+          posY = Math.floor(Math.random() * (window.innerHeight - 150));
+
+          txt.style.left = x + 'px';
+          txt.style.top = y + 'px';
+
+          document.body.appendChild(txt);
+        };
+      }
+      </script>
+
+  </body>
+</html>

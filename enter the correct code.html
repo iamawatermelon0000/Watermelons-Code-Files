@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>what could possibly be the code</title>
+    
+    <style>
+      body, #main {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+
+      #main {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 25px;
+      }
+
+      button {
+        width: 250px;
+        height: 50px;
+
+        font-size: 30px;
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        font-weight: bold;
+        font-style: italic;
+      }
+    </style>
+
+  </head>
+  <body>
+
+    <div id="main">
+
+    <h1 id="hint">Hint: ssssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh 🤫</h1>
+    <h2 id="entered">You entered:</h2>
+
+    <button type="button" onclick="clearText()">Clear</button>
+    </div>
+
+    <script>
+      let text = [];
+
+      const avaiCodes = [
+        "watermelon",
+        "code",
+        "random",
+        "idk",
+        "water",
+        "melon"
+      ];
+      const codes = [...avaiCodes];
+      let code;
+      let index;
+
+      let pr = document.getElementById("entered");
+
+      document.addEventListener("keydown", e => {
+
+        text.push(e.key);
+        pr.textContent = `You entered: ${text.join("")}`;
+
+        if (text.join("").toLowerCase() === code) {
+
+          alert("You got it!");
+          alert("Rerolling...");
+
+          clearText();
+          rerollCode();
+        }
+        if (codes.length === 0) {
+          alert("You won! Congrats!");
+          alert("should i extend this");
+          window.location.replace("https://iamawatermelon0000.github.io/Watermelons-Codes/");
+        }
+      })
+
+      function rerollCode() {
+        index = Math.floor(Math.random() * codes.length);
+        code = codes[index];
+
+        codes.splice(index, 1);
+        console.warn(`%cSHHHH, the code is ${code}`, "font-size: 10px;")
+      }
+
+      function clearText() {
+        text = [];
+        pr.textContent = `You entered: ${text}`
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        try {
+          rerollCode();
+        } catch (err) {
+          console.warn(`Error Found: ${err} while running reroll`)
+        }
+      })
+    </script>
+
+  </body>
+</html>

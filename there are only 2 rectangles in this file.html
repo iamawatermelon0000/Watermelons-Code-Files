@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <title>idk what to put here</title>
+
+    <style>
+
+      :root {
+        --big-width: 1000px;
+        --big-height: calc(var(--big-width) / 2);
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+
+      #bigSquare {
+        width: var(--big-width);
+        height: var(--big-height);
+
+        background: red;
+      
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #smallSquare {
+        width: calc(var(--big-width) / 2);
+        height: calc(var(--big-height) / 2);
+
+        background: blue;
+        position: relative
+      }
+
+      #b1, #b2 {
+        position: fixed;
+      }
+
+      #b1 {
+        bottom: 0;
+        left: 0;
+      }
+
+      #b2 {
+        bottom: 0;
+        right: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="b1" type="button" onclick="setColor()">Random Color (for everything)</button>
+    <button id="b2" type="button" onclick="setLoop()">Loop</button>
+
+      <div id="bigSquare">
+        <div id="smallSquare"></div>
+      </div>
+
+    <script>
+
+      let hexBig = "";
+      let hexSmall = "";
+      let hexBody = "";
+
+      const chars = "ABCDEF0123456";
+
+      let b = document.getElementById("bigSquare");
+      let s = document.getElementById("smallSquare");
+
+      let iLoop;
+
+      function setColor() {  
+        random(); 
+
+        document.body.style.background = hexBody;
+        s.style.background = hexSmall;
+        b.style.background = hexBig;
+
+        console.warn(hexBig, hexSmall, hexBody);
+        console.warn('changed successfully')
+      }
+
+      function random() {
+
+        hexBig = "";
+        hexBody = "";
+        hexSmall = "";
+
+        for (let i = 0; i < 8; i++) {
+          hexBig += chars[Math.floor(Math.random() * chars.length)];
+          hexSmall += chars[Math.floor(Math.random() * chars.length)];
+          hexBody += chars[Math.floor(Math.random() * chars.length)];
+        }
+        
+        if (!hexBig.startsWith("#")) hexBig = `#${hexBig}`;
+        if (!hexSmall.startsWith("#")) hexSmall = `#${hexSmall}`;
+        if (!hexBody.startsWith("#")) hexBody = `#${hexBody}`;
+
+        if (hexBig === hexSmall || hexBig === hexBody || hexBody === hexSmall) random();
+      }
+
+      function setLoop() {
+
+        alert("Click again to stop")
+
+        if (!iLoop) {
+          iLoop = setInterval(() => {
+            setColor();
+          }, 900);
+
+          return;
+        }
+
+        if (iLoop) {
+          clearInterval(iLoop);
+          return;
+        }
+      }
+    </script>
+
+  </body>
+</html>

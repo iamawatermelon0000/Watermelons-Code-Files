@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>i learned something new!</title>
+
+    <style>
+      body, #main {
+        display:  flex;
+        justify-content: center;
+        align-items: center;
+
+        gap: 50px;
+      }
+      body {
+        flex-direction: column;
+      }
+
+      #main {
+        border: 2px solid black;
+        gap: 175px;
+      }
+      
+      button, input {
+        width: 275px;
+        height: 50px;
+
+        font-size: 30px;
+        font-style: italic;
+        font-weight: bold;
+      }
+
+      #note {
+        font-size: 15px;
+      }
+
+      </style>
+  </head>
+  <body>
+
+    <div id="main">
+      <input type="file" id="file">
+      <button type="button" onclick="sendFile()">Send File</button>
+
+      <p id="note">note: only images and videos work</p>
+    </div>
+
+    <iframe id="iframe"></iframe>
+
+    <script>
+      let ifr = document.getElementById("iframe");
+
+      ifr.style.width = window.innerWidth + 'px';
+      ifr.style.height = (window.innerHeight - 100) + 'px';
+
+      function sendFile() {
+        let f = document.getElementById("file");
+
+        if (!f) {
+          alert("Please choose a file");
+          return;
+        }
+
+        let file = f.files[0];
+
+        let fiURL = URL.createObjectURL(file);
+
+        ifr.src = fiURL;
+      }
+    </script>
+  </body>
+</html>
